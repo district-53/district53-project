@@ -1,9 +1,16 @@
 from extensions import db
-from sqlalchemy import or_
+from models.user import User
 from models.exiles import Exile
 from models.user_ips import IP
 from models.utils import now
 
+
+def record_ip(user_id: int, ip_hash: str):
+    record = IP.query.filter_by(user_id=user_id, ip_hash=ip_hash).first()
+    if record is None:
+        db.session.add(IP(user_id=user_id, ip_hash=ip_hash))
+    else:
+        record.last_seen = now()
 
 def create_exile_record(user_id: int, exile_by: int, reason: str = "Exiled by lord") -> Exile:
     exile = Exile(
@@ -13,24 +20,10 @@ def create_exile_record(user_id: int, exile_by: int, reason: str = "Exiled by lo
         created_at=now(),
     )
     db.session.add(exile)
-    db.session.commit()
     return exile
 
 
-def get_ips_by_id(user_id: int) -> list[IP]:
-    return IP.query.filter_by(user_id=user_id).all()
-
-
-def block_ips(user_id: int, ip_hashes: list[str]):
-    IP.query.filter(
-        or_(IP.user_id == user_id, IP.ip_hash.in_(ip_hashes))
-    ).update({"blocked": True}, synchronize_session=False)
-    db.session.commit()
-
-
-def get_blocked_ips_by_id(user_id: int) -> list[IP]:
-    return IP.query.filter_by(user_id=user_id, blocked=True).all()
-
-
-def get_blocked_ips_by_ip(ip_hash: str) -> list[IP]:
-    return IP.query.filter_by(ip_hash=ip_hash, blocked=True).all()
+def is_ip_blocked(ip_hash: str) -> bool:
+    return (IP.query.join(User, User.id == IP.user_id)
+            .filter(IP.ip_hash == ip_hash, User.is_exiled.is_(True))
+            .first() is not None)

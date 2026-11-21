@@ -10,4 +10,3 @@ class IP(db.Model):
     ip_hash = db.Column(db.String(255), nullable=False)
     first_seen = db.Column(db.DateTime(timezone=True), default=now, nullable=False)
     last_seen = db.Column(db.DateTime(timezone=True), default=now, nullable=False)
-    blocked = db.Column(db.Boolean, default=False, nullable=False)

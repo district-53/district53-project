@@ -1,9 +1,11 @@
 from flask import Blueprint, flash, render_template, redirect, url_for, request, jsonify
 from flask_login import current_user, login_user, login_required, logout_user
 from werkzeug.exceptions import RequestEntityTooLarge
-from models.user import User, load_user, ROLES
+from models.user import User, ROLES
 from models.houses import House
 from extensions import db
+from repositories.exile_repo import record_ip
+from services.exile_service import hash_ip
 from repositories import user_repo, picture_repo
 
 auth_bp = Blueprint("auth", __name__)
@@ -36,6 +38,14 @@ def signup(role):
         email = request.form.get("email", "").strip().lower()
         password = request.form.get('password', "")
 
+        if not username:
+            return render_template("signup.html", role=role, houses=houses, form={},
+                                   error="Username is required"), 400
+
+        if not email:
+            return render_template("signup.html", role=role, houses=houses, form={},
+                                   error="Email is required"), 400
+
         existing = User.query.filter_by(username=username).first()
         if existing and existing.email == email:
             flash("You already have an account. Please log in.")
@@ -50,6 +60,9 @@ def signup(role):
         house_id = None
         if role in ("knight", "noble"):
             house_id = request.form.get("house_id", type=int)
+            if house_id is None or db.session.get(House, house_id) is None:
+                return render_template("signup.html", role=role, houses=houses, form={},
+                                       error="Choose a house"), 400
 
         stats = None
         if role == "knight":
@@ -71,8 +84,7 @@ def signup(role):
                 picture = picture_repo.save_picture(photo)
             except picture_repo.PictureError as e:
                 db.session.rollback()
-                return render_template("signup.html", role=role, houses=houses, form={},
-                                    error=str(e)), 400
+                return render_template("signup.html", role=role, houses=houses, form={}, error=str(e)), 400
 
         user = user_repo.create_user(username, email, password, role, house_id=house_id,
                                     photo_id=picture.id if picture else None, stats=stats)
@@ -81,8 +93,10 @@ def signup(role):
             picture.uploaded_by = user.id
             db.session.commit()
 
-    login_user(user)
-    return redirect(url_for("book.book"))
+        login_user(user)
+        record_ip(user.id, hash_ip(request.remote_addr or ""))
+        db.session.commit()
+        return redirect(url_for("book.book"))
 
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
@@ -97,6 +111,8 @@ def login():
 
         if user and user.check_password(password):
             login_user(user)
+            record_ip(user.id, hash_ip(request.remote_addr or ""))
+            db.session.commit()
             return redirect(url_for('book.book'))
         flash("Wrong username or password")
 

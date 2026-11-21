@@ -1,8 +1,7 @@
-import hashlib
-from flask import Blueprint, redirect, render_template, request, url_for
+from flask import Blueprint, abort, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from services.exile_service import is_exiled, to_exile
+from services.exile_service import hash_ip, is_exiled, to_exile
 
 exile_bp = Blueprint("exile", __name__)
 
@@ -12,17 +11,11 @@ def check_exile():
     if request.endpoint in ("exile.exile", "static"):
         return None
 
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        client_ip = forwarded_for.split(",")[0].strip()
-    else:
-        client_ip = request.headers.get("X-Real-IP") or request.remote_addr or ""
+    user = current_user if current_user.is_authenticated else None
 
-    ip_hash = hashlib.sha256(client_ip.encode("utf-8")).hexdigest()
-    user_id = current_user.id if current_user.is_authenticated else None
-
-    if is_exiled(user_id=user_id, ip_hashcode=ip_hash):
+    if is_exiled(user, hash_ip(request.remote_addr or "")):
         return redirect(url_for("exile.exile"))
+    return None
 
 @exile_bp.route("/exile", methods=["GET"])
 def exile():
@@ -33,5 +26,8 @@ def exile():
 @exile_bp.route("/exile/<int:target_id>", methods=["POST"])
 @login_required
 def exile_user(target_id):
-    to_exile(user_id=target_id, exile_by=current_user.id)
-    return redirect(url_for("book.book", kind="knight"))
+    try:
+        to_exile(user_id=target_id, exile_by=current_user.id)
+    except PermissionError:
+        abort(403)
+    return redirect(url_for("book.book", kind="knight", house=request.form.get("house", 0, type=int), spread=request.form.get("spread", 0, type=int)))

@@ -1,6 +1,7 @@
 import os
 from flask import Flask
 from config import Config
+from werkzeug.middleware.proxy_fix import ProxyFix
 from extensions import db, login_manager
 from storage import init_storage
 from routes.auth_routes import auth_bp
@@ -11,10 +12,12 @@ from data.add_data import add_people, add_houses
 
 def create_app():
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1)
     app.config.from_object(Config)
 
     db.init_app(app)
     login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
     init_storage(app)
 
     import models
