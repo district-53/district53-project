@@ -38,7 +38,7 @@
 
                 {% if current_user.role == 'noble' and current_user.house_id and entry.person.house_id == current_user.house_id %}
                     <form class="exile-form" method="post"
-                          action="{{ url_for('exile.exile', target_id=entry.person.id) }}">
+                          action="{{ url_for('exile.exile_user', target_id=entry.person.id) }}">
                         <button type="submit" class="btn btn-small">exile</button>
                     </form>
                 {% endif %}
