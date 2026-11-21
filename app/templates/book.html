@@ -87,6 +87,7 @@
             {% endif %}
 
             <a href="{{ url_for('auth.logout') }}" class="settings-btn" title="Log out">⏻</a>
+            <a href="{{ url_for('profile.view_profile', user_id=current_user.id) }}" class="settings-btn profile-btn" title="My profile">👤</a>
 
             <div class="center-column">
                 {% with messages = get_flashed_messages() %}
