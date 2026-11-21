@@ -17,11 +17,16 @@
             {% endif %}
         {% endwith %}
 
-        {% if user.photo_id %}
-            <img class="portrait" src="{{ url_for('pictures.get_picture', picture_id=user.photo_id) }}" alt="{{ user.username }}">
-        {% else %}
-            <div class="portrait">no photo</div>
-        {% endif %}
+        <label class="avatar-label" {% if current_user.id == user.id %}for="photo-input"{% endif %}>
+            {% if user.photo_id %}
+                <img class="portrait" src="{{ url_for('pictures.get_picture', picture_id=user.photo_id) }}" alt="{{ user.username }}">
+            {% else %}
+                <div class="portrait">no photo</div>
+            {% endif %}
+            {% if current_user.id == user.id %}
+                <span class="avatar-hint">change photo</span>
+            {% endif %}
+        </label>
 
         <h2>{{ user.username }}</h2>
         <p>{{ user.role }}</p>
@@ -44,26 +49,21 @@
         {% if current_user.id == user.id %}
             <form class="form-box" method="post" enctype="multipart/form-data"
                   action="{{ url_for('profile.view_profile', user_id=user.id) }}">
-                <input type="text" name="username" value="{{ user.username }}" maxlength="32" required>
+                <input type="text" name="username" value="{{ user.username }}" maxlength="32" autocomplete="username">
                 <input type="email" name="email" value="{{ user.email }}" required>
-                <input type="password" name="password" placeholder="new password (leave empty to keep)">
+                <input type="password" name="password" placeholder="new password (leave empty to keep)" autocomplete="new-password">
                 {% if knight %}
                     <input type="number" name="strength" value="{{ knight.strength }}" min="1" max="100" placeholder="strength (1-100)" required>
                     <input type="number" name="dexterity" value="{{ knight.dexterity }}" min="1" max="100" placeholder="dexterity (1-100)" required>
                     <input type="number" name="constitution" value="{{ knight.constitution }}" min="1" max="100" placeholder="constitution (1-100)" required>
                 {% endif %}
-                <label class="upload-box">
-                    change photo
-                    <input type="file" name="photo" accept="image/png, image/jpeg, image/webp">
-                </label>
+                <input type="file" id="photo-input" name="photo" accept="image/png, image/jpeg, image/webp" hidden onchange="this.form.submit()">
                 <button type="submit" class="btn">save changes</button>
             </form>
         {% endif %}
 
-        <div class="top-buttons">
-            <a href="{{ url_for('book.book') }}" class="btn">book</a>
-            <a href="{{ url_for('auth.logout') }}" class="btn">log out ⏻</a>
-        </div>
+        <a href="{{ url_for('book.book') }}" class="corner-btn corner-left" title="Back to the book">← Book</a>
+        <a href="{{ url_for('auth.logout') }}" class="corner-btn corner-right" title="Log out">⏻</a>
     </div>
 </body>
 </html>

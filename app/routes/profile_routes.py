@@ -3,11 +3,10 @@ from flask_login import current_user, login_required
 
 from extensions import db
 from models import House, Knight, User
-from repositories.knight_repo import can_see_stats
+from repositories.knight_repo import STAT_NAMES, can_see_stats, update_stats
 from repositories.picture_repo import PictureError, save_picture
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
-
 
 @profile_bp.route("/<int:user_id>", methods=["GET", "POST"])
 @login_required
@@ -24,7 +23,6 @@ def view_profile(user_id):
         new_email = request.form.get("email", "").strip().lower()
         new_password = request.form.get("password", "")
 
-
         if new_username != user.username and User.query.filter_by(username=new_username).first():
             flash("This username is already taken.")
             return redirect(url_for("profile.view_profile", user_id=user.id))
@@ -33,10 +31,14 @@ def view_profile(user_id):
             flash("This email is already registered.")
             return redirect(url_for("profile.view_profile", user_id=user.id))
 
-        user.username = new_username
-        user.email = new_email
-        if new_password:
-            user.set_password(new_password)
+        knight = db.session.get(Knight, user.id) if user.role == "knight" else None
+        if knight:
+            stats = {name: request.form.get(name, type=int) for name in STAT_NAMES}
+            try:
+                update_stats(knight, stats)
+            except ValueError as error:
+                flash(str(error))
+                return redirect(url_for("profile.view_profile", user_id=user.id))
 
         photo = request.files.get("photo")
         if photo and photo.filename:
@@ -46,6 +48,11 @@ def view_profile(user_id):
                 flash(str(error))
                 return redirect(url_for("profile.view_profile", user_id=user.id))
             user.photo_id = picture.id
+
+        user.username = new_username
+        user.email = new_email
+        if new_password:
+            user.set_password(new_password)
 
         db.session.commit()
         flash("Profile updated.")
