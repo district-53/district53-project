@@ -556,3 +556,88 @@ a.settings-btn {
     justify-content: center;
     font-size: 18px;
 }
+
+.book-search {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+}
+
+.search-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #98a2b3;
+    border-radius: 10px;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.book-search input {
+    width: 0;
+    padding: 0;
+    border: none;
+    opacity: 0;
+    text-align: left;
+    transition: width 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+}
+
+.book-search:hover input,
+.book-search:focus-within input {
+    width: 200px;
+    padding: 8px 12px;
+    border: 1px solid #98a2b3;
+    opacity: 1;
+}
+
+.search-results {
+    position: absolute;
+    top: 44px;
+    right: 0;
+    width: 260px;
+    max-height: 260px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: #ffffff;
+    border: 1px solid #98a2b3;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.search-results[hidden],
+.book-search:not(:hover):not(:focus-within) .search-results {
+    display: none;
+}
+
+.search-results a {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 10px;
+    border-radius: 8px;
+    color: #333;
+    text-decoration: none;
+}
+
+.search-results a:hover {
+    background: #eaecf0;
+}
+
+.search-results small {
+    color: #667085;
+    font-size: 12px;
+}
+
+.search-empty {
+    padding: 6px 10px;
+    color: #667085;
+    font-size: 13px;
+}
