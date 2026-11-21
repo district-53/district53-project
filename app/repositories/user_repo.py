@@ -43,3 +43,18 @@ def update(instance, **fields):
     for field_name, value in fields.items():
         setattr(instance, field_name, value)
     db.session.commit()
+
+def search_people(text, limit=10):
+    text = (text or "").strip()
+    if not text:
+        return []
+
+    safe = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    pattern = f"%{safe}%"
+
+    return (User.query
+            .filter(User.role.in_(("knight", "noble")))
+            .filter(User.username.ilike(pattern, escape="\\"))
+            .order_by(User.username)
+            .limit(limit)
+            .all())

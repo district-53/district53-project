@@ -1,10 +1,11 @@
-from flask import Blueprint, flash, redirect, render_template, request, url_for
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
 from extensions import db
 from models import House, Knight, User
 from services import spy_service
 from repositories.knight_repo import can_see_stats
+from repositories import user_repo
 
 book_bp = Blueprint("book", __name__)
 
@@ -42,11 +43,13 @@ def book():
     people = query.order_by(User.username).all()
 
     spread = request.args.get("spread", type=int)
+    focus = request.args.get("focus", type=int)
     if spread is None:
         spread = 0
         ids = [p.id for p in people]
-        if current_user.id in ids:
-            spread = ids.index(current_user.id) // 2
+        target = focus if focus in ids else current_user.id
+        if target in ids:
+            spread = ids.index(target) // 2
     if spread < 0:
         spread = 0
 
@@ -78,3 +81,19 @@ def reveal_stats(target_id):
         flash(str(error))
 
     return redirect(url_for("book.book", kind="knight", house=request.form.get("house", 0, type=int), spread=request.form.get("spread", 0, type=int)))
+
+@book_bp.route("/search")
+@login_required
+def search():
+    text = request.args.get("q", "")
+    results = []
+    for person in user_repo.search_people(text):
+        house = db.session.get(House, person.house_id) if person.house_id else None
+        results.append({
+            "id": person.id,
+            "name": person.username,
+            "role": person.role,
+            "house": house.name if house else None,
+            "url": url_for("book.book", kind=person.role, house=0, focus=person.id),
+        })
+    return jsonify(results)
