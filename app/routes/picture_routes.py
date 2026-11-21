@@ -1,10 +1,11 @@
-import hashlib 
 from flask import Blueprint, Response, abort, jsonify, redirect, request, url_for
 from flask_login import current_user, login_required
+
 import storage
 from extensions import db
 from models.picture import Picture
 from models.user import User
+from repositories import picture_repo
 
 picture_bp = Blueprint("pictures", __name__)
 
@@ -12,33 +13,15 @@ picture_bp = Blueprint("pictures", __name__)
 @picture_bp.route("/me/avatar", methods=["POST"])
 @login_required
 def upload_my_avatar():
-    if not storage.is_enabled():
-        return jsonify(error="Picture storage is not configured"), 503
-
     file = request.files.get("image")
     if file is None or file.filename == "":
         return jsonify(error="No file in the 'image' field"), 400
-    if file.mimetype not in storage.ALLOWED_IMAGE_TYPES:
-        return jsonify(error="Only JPG, PNG and WEBP images are allowed"), 400
 
-    data = file.read()
-    sha256 = hashlib.sha256(data).hexdigest()
-
-    picture = Picture.query.filter_by(sha256_hash=sha256).first()
-    if picture is None:
-        extension = storage.ALLOWED_IMAGE_TYPES[file.mimetype]
-        key = f"pictures/{sha256}.{extension}"
-        storage.upload_bytes(data, key, file.mimetype)
-
-        picture = Picture(
-            seaweed_fid=key,
-            size_bytes=len(data),
-            extension=extension,
-            sha256_hash=sha256,
-            uploaded_by=current_user.id,
-        )
-        db.session.add(picture)
-        db.session.flush()
+    try:
+        picture = picture_repo.save_picture(file, uploaded_by=current_user.id)
+    except picture_repo.PictureError as e:
+        db.session.rollback()
+        return jsonify(error=str(e)), 400
 
     current_user.photo_id = picture.id
     db.session.commit()

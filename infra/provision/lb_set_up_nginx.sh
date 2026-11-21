@@ -38,6 +38,7 @@ ${SERVERS}
 server {
     listen 80 default_server;
     server_name _;
+    client_max_body_size 6m;
 
     access_log /var/log/nginx/lb_access.log upstreamlog;
     error_log  /var/log/nginx/lb_error.log warn;

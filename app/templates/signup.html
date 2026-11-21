@@ -7,17 +7,25 @@
 </head>
 <body>
     <div class="card">
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
         <div class="roles">
             <a href="{{ url_for('auth.signup', role='commonfolk') }}" class="btn {% if role == 'commonfolk' %}active{% endif %}">commonfolk</a>
             <a href="{{ url_for('auth.signup', role='knight') }}" class="btn {% if role == 'knight' %}active{% endif %}">knight</a>
             <a href="{{ url_for('auth.signup', role='noble') }}" class="btn {% if role == 'noble' %}active{% endif %}">noble</a>
         </div>
 
-        <form class="form-box" method="post" action="{{ url_for('auth.signup', role=role) }}">
+        <form class="form-box" method="post" action="{{ url_for('auth.signup', role=role) }}" enctype="multipart/form-data">
             <input type="text" name="username" placeholder="username" required>
             <input type="email" name="email" placeholder="email" required>
             <input type="password" name="password" placeholder="password" required>
-            <div class="upload-box">upload photo</div>
+
+            <label class="upload-box">
+                upload photo{% if role in ['knight', 'noble'] %} (required){% endif %}
+                <input type="file" name="photo" accept="image/jpeg,image/png,image/webp"
+                       {% if role in ['knight', 'noble'] %}required{% endif %}>
+            </label>
 
             {% if role in ['knight', 'noble'] %}
                 <select name="house_id" required>

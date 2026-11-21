@@ -61,8 +61,8 @@ fi
 if [[ "${RUN_INIT_DB:-0}" == "1" ]]; then
   cd "$APP_DIR"
   runuser -u "$APP_USER" -- "$VENV_DIR/bin/flask" --app app init-db
-  runuser -u "$APP_USER" -- "$VENV_DIR/bin/flask" --app app add-houses"
-  runuser -u "$APP_USER" -- "$VENV_DIR/bin/flask" --app app add-people"
+  runuser -u "$APP_USER" -- "$VENV_DIR/bin/flask" --app app add-houses
+  runuser -u "$APP_USER" -- "$VENV_DIR/bin/flask" --app app add-people
 fi
 
 

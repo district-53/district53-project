@@ -6,7 +6,7 @@ from models import Knight, User
 def create_user(username, email, password, role, house_id=None, photo_id=None,
                 stats=None, knight_type="regular"):
 
-    user = User(username=username, email=email, role=role, house_id=house_id)
+    user = User(username=username, email=email, role=role, house_id=house_id, photo_id=photo_id)
     user.set_password(password)
     db.session.add(user)
     db.session.flush()

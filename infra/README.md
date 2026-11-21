@@ -276,3 +276,27 @@ vagrant up
 vagrant provision db --provision-with db     
 vagrant provision lb --provision-with lb     
 ```
+
+## 9. Firewall(ufw)
+
+Every VM runs `ufw` with **default deny incoming** and allow outgoing.
+Rules are applied automatically on every `vagrant up` by `provision/firewall_set_up.sh`.
+
+| VM       | Open port                                    | Allowed from                    |
+| -------- | -------------------------------------------- | -------------                   |
+|  all     | 22/tcp(ssh)                                  | anywhere                        |
+| `lb`     | 80/tcp                                       | anywhere                        |
+| `db`     | 5432/tcp(postgres), 833/tcp(seaweedfs s3)    | app VMs only                    |
+| `consul` | 8500, 8600, 8300, 8301                       | private network 192.168.56.0/24 |
+| `app1`   | 800/tcp                                      | lb only(192.168.56.10)          |
+| `app2`   | 800/tcp                                      | lb only(192.168.56.10)          |
+
+Re-apply rules without recreating VMs:
+
+    vagrant provision --provision-with firewall
+
+Check rules on a VM:
+
+    vagrant ssh db -c "sudo ufw status verbose"
+
+Blocked ports are dropped silently, so `nc` shows `timed out` instead of `refused`.
