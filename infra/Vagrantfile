@@ -75,9 +75,7 @@ Vagrant.configure("2") do |config|
             "DB_LISTEN"   => DB_IP,
             "APP_IPS"     => APP_IPS,
           }
-        node.vm.provision "seaweedfs-config", type: "file",
-          source: "provision/seaweedfs",
-          destination: "/tmp/seaweedfs"
+        upload_configs(config.vm, ["seaweedfs-s3.json.tpl", "seaweedfs.service.tpl"])
         node.vm.provision "seaweedfs", type: "shell",
           path: "provision/seaweedfs_set_up.sh",
           env: {

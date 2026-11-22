@@ -6,9 +6,6 @@ SEAWEED_IP="${SEAWEED_IP:?}"
 S3_ACCESS_KEY="${S3_ACCESS_KEY:?}"
 S3_SECRET_KEY="${S3_SECRET_KEY:?}"
 
-if ! id seaweedfs; then
-    useradd -s /usr/sbin/nologin -r -U seaweedfs
-
 if ! [ -e /etc/systemd/system/seaweedfs.service ]; then
   ARCH="$(dpkg --print-architecture)"
   wget -q -O /tmp/weed.tar.gz "https://github.com/seaweedfs/seaweedfs/releases/download/${SEAWEED_VERSION}/linux_${ARCH}.tar.gz"
@@ -18,6 +15,7 @@ fi
 
 if ! id seaweedfs; then
     useradd -s /usr/sbin/nologin -r -U seaweedfs
+fi
 
 mkdir -p /var/lib/seaweedfs /etc/seaweedfs
 chown root:seaweedfs /etc/seaweedfs
