@@ -1,41 +1,32 @@
 #!/bin/bash
 set -euo pipefail
 
-PG_VERSION=16
-PG_CONF_DIR="/etc/postgresql/${PG_VERSION}/main"
+VERSION=16
+DIR="/etc/postgresql/${VERSION}/main"
 
 # postgresql installation
-if ! dpkg -s "postgresql-${PG_VERSION}" >/dev/null 2>&1; then
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update
-  apt-get install -y "postgresql-${PG_VERSION}"
+if ! [ -e "/usr/lib/systemd/system/postgresql.service" ]; then
+  apt update
+  apt install -y "postgresql-${VERSION}"
 fi
 
 # postgresql configuration
-cat > "${PG_CONF_DIR}/conf.d/hall.conf" <<EOF
-listen_addresses = 'localhost,${DB_LISTEN}'
-password_encryption = 'scram-sha-256'
-EOF
+envsubst '${DB_LISTEN}' < /tmp/postgresql-hall.conf.tpl > "${DIR}/conf.d/hall.conf"
+chown postgres:postgres "${DIR}/conf.d/hall.conf"
+chmod 644 "${DIR}/conf.d/hall.conf"
 
-HBA="${PG_CONF_DIR}/pg_hba.conf"
-
-cat > "$HBA" <<'EOF'
-# TYPE  DATABASE  USER      ADDRESS           METHOD
-
-# Local admin access
-local   all       postgres                    peer
-local   all       all                         peer
-
-# Password access from the db VM itself
-host    all       all       127.0.0.1/32      scram-sha-256
-host    all       all       ::1/128           scram-sha-256
-EOF
-
+HBA="${DIR}/pg_hba.conf"
+HBA_APP_RULES=""
 for ip in $APP_IPS; do
-  printf 'host    %s      %s  %s/32  scram-sha-256\n' "$DB_NAME" "$DB_USER" "$ip"
-done >> "$HBA"
+  HBA_APP_RULES+="$(printf 'host    %s      %s  %s/32  scram-sha-256' "$DB_NAME" "$DB_USER" "$ip")"$'\n'
+done
+export HBA_APP_RULES
 
-systemctl enable --now postgresql >/dev/null
+envsubst '${HBA_APP_RULES}' < /tmp/pg_hba.conf.tpl > "${DIR}/pg_hba.conf"
+chown postgres:postgres "${DIR}/pg_hba.conf"
+chmod 640 "${DIR}/pg_hba.conf"
+
+systemctl enable --now postgresql
 systemctl restart postgresql
 
 for _ in $(seq 1 30); do

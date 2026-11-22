@@ -21,10 +21,17 @@ APP_IPS = NODES.select { |n| n[:name].start_with?("app") }.map { |n| n[:ip] }.jo
 DB_IP   = NODES.find { |n| n[:name] == "db" }[:ip]
 APP_SRC = File.expand_path("../app", __dir__)
 
-
 #lb setings
 APP_PORT    = "8000"         
 LB_STRATEGY = "least_conn"  
+
+def upload_configs(vm, files, run: "once")
+  files.each do |f|
+    vm.provision "#{f}", type: "file", run: run,
+      source: "provision/config_files/#{f}",
+      destination: "/tmp/#{f}"
+  end
+end
 
 def read_secret(name)
   file = File.expand_path("./secrets/#{name}", __dir__)
@@ -43,9 +50,10 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
+  upload_configs(config.vm, ["sshd-hardening.conf"])
   config.vm.provision "hardening", type: "shell", run: "always",
     path: "provision/users_set_up.sh",
-    env: { "ADMIN_USER" => "admin", "ADMIN_PUBKEY" => admin_pub_key }
+    env: { "ADMIN_PUBKEY" => admin_pub_key }
 
   NODES.each do |n|
     config.vm.define n[:name] do |node|
@@ -57,6 +65,7 @@ Vagrant.configure("2") do |config|
       end
 
       if n[:name] == "db"
+        upload_configs(config.vm, ["postgresql-hall.conf.tpl", "pg_hba.conf.tpl", "seaweedfs.service.tpl", "seaweedfs-s3.json.tpl"])
         node.vm.provision "db", type: "shell",
           path: "provision/db_set_up.sh",
           env: {
@@ -85,6 +94,7 @@ Vagrant.configure("2") do |config|
 
       if n[:name] == "lb"
         node.vm.network "forwarded_port", guest: 80, host: 8080
+        upload_configs(node.vm, ["nginx-lb.conf.tpl"])
         node.vm.provision "lb", type: "shell",
           path: "provision/lb_set_up_nginx.sh",
           env: {
@@ -95,15 +105,14 @@ Vagrant.configure("2") do |config|
       end
   
       if n[:name] == "consul"
-        node.vm.provision "consul-config", type: "file",
-          source: "provision/consul/consul.hcl",
-          destination: "/tmp/consul.hcl"
+        upload_configs(node.vm, ["consul.hcl"])
         node.vm.provision "consul", type: "shell",
           path: "provision/consul_set_up.sh"
       end
 
       if n[:name].start_with?("app")
         node.vm.synced_folder APP_SRC, "/opt/hall"
+        upload_configs(node.vm, ["app.env.tpl", "hall.service"])
         node.vm.provision "app", type: "shell",
           path: "provision/app_set_up.sh",
           env: {

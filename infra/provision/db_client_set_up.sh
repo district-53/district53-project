@@ -1,15 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-PKG="postgresql-client-16"
+PG_VERSION=16
+PKG="postgresql-client-${PG_VERSION}"
 
-if dpkg -s "$PKG" >/dev/null 2>&1; then
+if [ -e "/usr/lib/postgresql/${PG_VERSION}/bin/psql" ]; then
   echo "${PKG} already installed"
   exit 0
 fi
 
-echo "Installing ${PKG}..."
-export DEBIAN_FRONTEND=noninteractive
-apt-get update
-apt-get install -y "$PKG"
+apt update
+apt install -y "$PKG"
 psql --version

@@ -41,11 +41,9 @@ def signup(role):
             flash("You already have an account. Please log in.")
             return redirect(url_for("auth.login"))
         if existing:
-            return render_template("signup.html", role=role, houses=houses, form={},
-                                   error="Username already taken"), 400
+            return render_template("signup.html", role=role, houses=houses, form={}, error="Username already taken"), 400
         if User.query.filter_by(email=email).first():
-            return render_template("signup.html", role=role, houses=houses, form={},
-                                   error="Email already registered"), 400
+            return render_template("signup.html", role=role, houses=houses, form={}, error="Email already registered"), 400
 
         house_id = None
         if role in ("knight", "noble"):
@@ -56,14 +54,12 @@ def signup(role):
             stats = {name: request.form.get(name, type=int) for name in STATS}
             for name, value in stats.items():
                 if value is None or not STAT_MIN <= value <= STAT_MAX:
-                    return render_template("signup.html", role=role, houses=houses, form={},
-                                        error=f"{name} must be between {STAT_MIN} and {STAT_MAX}"), 400
+                    return render_template("signup.html", role=role, houses=houses, form={}, error=f"{name} must be between {STAT_MIN} and {STAT_MAX}"), 400
 
         photo = request.files.get("photo")
         has_photo = photo is not None and photo.filename != ""
         if role in ("knight", "noble") and not has_photo:
-            return render_template("signup.html", role=role, houses=houses, form={},
-                                error="Knights and nobles must upload a photo"), 400
+            return render_template("signup.html", role=role, houses=houses, form={}, error="Knights and nobles must upload a photo"), 400
 
         picture = None
         if has_photo:
@@ -71,11 +67,9 @@ def signup(role):
                 picture = picture_repo.save_picture(photo)
             except picture_repo.PictureError as e:
                 db.session.rollback()
-                return render_template("signup.html", role=role, houses=houses, form={},
-                                    error=str(e)), 400
+                return render_template("signup.html", role=role, houses=houses, form={}, error=str(e)), 400
 
-        user = user_repo.create_user(username, email, password, role, house_id=house_id,
-                                    photo_id=picture.id if picture else None, stats=stats)
+        user = user_repo.create_user(username, email, password, role, house_id=house_id, photo_id=picture.id if picture else None, stats=stats)
 
         if picture is not None and picture.uploaded_by is None:
             picture.uploaded_by = user.id
@@ -115,6 +109,5 @@ def file_too_large(e):
     if request.endpoint == "auth.signup":
         role = (request.view_args or {}).get("role") or "commonfolk"
         houses = House.query.order_by(House.name).all()
-        return render_template("signup.html", role=role, houses=houses, form={},
-                               error="Photo must be smaller than 5 MB"), 413
+        return render_template("signup.html", role=role, houses=houses, form={}, error="Photo must be smaller than 5 MB"), 413
     return jsonify(error="File is too large (max 5 MB)"), 413

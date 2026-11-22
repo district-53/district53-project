@@ -2,33 +2,29 @@
 set -euo pipefail
 
 #Add user admin
-if ! id -u "$ADMIN_USER" >/dev/null 2>&1; then
-  useradd -m -s /bin/bash "$ADMIN_USER"
+if ! id -u admin >/dev/null 2>&1; then
+  useradd -m -s /bin/bash admin
 fi
-usermod -p '*' "$ADMIN_USER"
+usermod -p '*' admin
 
-SUDO_FILE="/etc/sudoers.d/90-$ADMIN_USER"
-echo "$ADMIN_USER ALL=(ALL) NOPASSWD:ALL" > "$SUDO_FILE"
-chmod 440 "$SUDO_FILE"
-visudo -cf "$SUDO_FILE" >/dev/null
+echo "admin ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/90-admin
+chmod 440 /etc/sudoers.d/90-admin
+visudo -cf /etc/sudoers.d/90-admin >/dev/null
 
 
-HOME_DIR=$(getent passwd "$ADMIN_USER" | cut -d: -f6)
-install -d -m 700 -o "$ADMIN_USER" -g "$ADMIN_USER" "$HOME_DIR/.ssh"
-echo "$ADMIN_PUBKEY" > "$HOME_DIR/.ssh/authorized_keys"
-chown "$ADMIN_USER:$ADMIN_USER" "$HOME_DIR/.ssh/authorized_keys"
-chmod 600 "$HOME_DIR/.ssh/authorized_keys"
+mkdir -p /home/admin/.ssh
+chown admin:admin /home/admin/.ssh
+chmod 700 /home/admin/.ssh
+echo "$ADMIN_PUBKEY" > /home/admin/.ssh/authorized_keys
+chown admin:admin /home/admin/.ssh/authorized_keys
+chmod 600 /home/admin/.ssh/authorized_keys
 
 
 #root off password awtorization
 passwd -l root >/dev/null
 
-cat > /etc/ssh/sshd_config.d/00-users_set_up.conf <<'EOF'
-PermitRootLogin no
-PasswordAuthentication no
-KbdInteractiveAuthentication no
-PubkeyAuthentication yes
-EOF
+cp /tmp/sshd-hardening.conf /etc/ssh/sshd_config.d/00-users_set_up.conf
+chown root:root /etc/ssh/sshd_config.d/00-users_set_up.conf
 chmod 644 /etc/ssh/sshd_config.d/00-users_set_up.conf
 
 sshd -t

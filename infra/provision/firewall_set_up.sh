@@ -7,10 +7,9 @@ APP_IPS="${APP_IPS:?}"
 APP_PORT="${APP_PORT:-8000}"
 SUBNET="${SUBNET:-192.168.56.0/24}"
 
-if ! command -v ufw; then
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update -y
-  apt-get install -y ufw
+if ! [ -e "/usr/lib/systemd/system/ufw.service" ]; then
+  apt update -y
+  apt install -y ufw
 fi
 
 ufw --force reset
