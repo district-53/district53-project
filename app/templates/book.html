@@ -89,6 +89,7 @@
             {% endif %}
 
             <a href="{{ url_for('auth.logout') }}" class="settings-btn" title="Log out">⏻</a>
+            <a href="{{ url_for('profile.view_profile', user_id=current_user.id) }}" class="settings-btn profile-btn" title="My profile">👤</a>
 
             <div class="center-column">
                 {% with messages = get_flashed_messages() %}
@@ -107,6 +108,13 @@
                         {% for h in houses %}
                             <a href="{{ url_for('book.book', kind=kind, house=h.id) }}" class="bookmark {% if house == h.id %}active{% endif %}">{{ h.name }}</a>
                         {% endfor %}
+                    </div>
+
+                    <div class="book-search">
+                        <input type="search" id="search-input" placeholder="search..."
+                               autocomplete="off" aria-label="Search people">
+                        <span class="search-icon" title="Search">🔍</span>
+                        <ul id="search-results" class="search-results" hidden></ul>
                     </div>
 
                     <div class="book">
@@ -135,5 +143,79 @@
             {% endif %}
         </div>
     </div>
+        <script>
+    (function () {
+        const input = document.getElementById("search-input");
+        const list = document.getElementById("search-results");
+        const icon = document.querySelector(".search-icon");
+        const searchUrl = "{{ url_for('book.search') }}";
+        let timer = null;
+        let lastQuery = "";
+
+        icon.addEventListener("click", () => input.focus());
+
+        input.addEventListener("input", () => {
+            clearTimeout(timer);
+            timer = setTimeout(runSearch, 300);
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") {
+                input.value = "";
+                showResults(null);
+                input.blur();
+            }
+        });
+
+        async function runSearch() {
+            const q = input.value.trim();
+            lastQuery = q;
+            if (!q) {
+                showResults(null);
+                return;
+            }
+            try {
+                const response = await fetch(searchUrl + "?q=" + encodeURIComponent(q));
+                if (!response.ok) throw new Error(response.status);
+                const data = await response.json();
+                if (q !== lastQuery) return;
+                showResults(data);
+            } catch (error) {
+                list.innerHTML = "";
+                const li = document.createElement("li");
+                li.className = "search-empty";
+                li.textContent = "Search failed";
+                list.appendChild(li);
+                list.hidden = false;
+            }
+        }
+
+        function showResults(items) {
+            list.innerHTML = "";
+            if (items === null) {
+                list.hidden = true;
+                return;
+            }
+            if (items.length === 0) {
+                const li = document.createElement("li");
+                li.className = "search-empty";
+                li.textContent = "No results";
+                list.appendChild(li);
+            }
+            for (const item of items) {
+                const li = document.createElement("li");
+                const link = document.createElement("a");
+                link.href = item.url;
+                link.textContent = item.name;
+                const details = document.createElement("small");
+                details.textContent = item.role + (item.house ? " · " + item.house : "");
+                link.appendChild(details);
+                li.appendChild(link);
+                list.appendChild(li);
+            }
+            list.hidden = false;
+        }
+    })();
+    </script>
 </body>
 </html>

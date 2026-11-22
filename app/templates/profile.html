@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user.username }} - Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="card">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="flash-box">
+                    {% for msg in messages %}
+                        <div>{{ msg }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <label class="avatar-label" {% if current_user.id == user.id %}for="photo-input"{% endif %}>
+            {% if user.photo_id %}
+                <img class="portrait" src="{{ url_for('pictures.get_picture', picture_id=user.photo_id) }}" alt="{{ user.username }}">
+            {% else %}
+                <div class="portrait">no photo</div>
+            {% endif %}
+            {% if current_user.id == user.id %}
+                <span class="avatar-hint">change photo</span>
+            {% endif %}
+        </label>
+
+        <h2>{{ user.username }}</h2>
+        <p>{{ user.role }}</p>
+        {% if house %}
+            <p>House {{ house.name }}</p>
+            <p><i>{{ house.motto }}</i></p>
+        {% endif %}
+
+        {% if knight %}
+            <h3>Stats{% if knight.knight_type == 'white' %} · White Knight{% endif %}</h3>
+            {% if stats %}
+                <p>Strength: {{ stats.strength }}</p>
+                <p>Dexterity: {{ stats.dexterity }}</p>
+                <p>Constitution: {{ stats.constitution }}</p>
+            {% else %}
+                <p class="locked">hidden</p>
+            {% endif %}
+        {% endif %}
+
+        {% if current_user.id == user.id %}
+            <form class="form-box" method="post" enctype="multipart/form-data"
+                  action="{{ url_for('profile.view_profile', user_id=user.id) }}">
+                <input type="text" name="username" value="{{ user.username }}" maxlength="32" autocomplete="username">
+                <input type="email" name="email" value="{{ user.email }}" required>
+                <input type="password" name="password" placeholder="new password (leave empty to keep)" autocomplete="new-password">
+                {% if knight %}
+                    <input type="number" name="strength" value="{{ knight.strength }}" min="1" max="100" placeholder="strength (1-100)" required>
+                    <input type="number" name="dexterity" value="{{ knight.dexterity }}" min="1" max="100" placeholder="dexterity (1-100)" required>
+                    <input type="number" name="constitution" value="{{ knight.constitution }}" min="1" max="100" placeholder="constitution (1-100)" required>
+                {% endif %}
+                <input type="file" id="photo-input" name="photo" accept="image/png, image/jpeg, image/webp" hidden onchange="this.form.submit()">
+                <button type="submit" class="btn">save changes</button>
+            </form>
+        {% endif %}
+
+        <a href="{{ url_for('book.book') }}" class="corner-btn corner-left" title="Back to the book">← Book</a>
+        <a href="{{ url_for('auth.logout') }}" class="corner-btn corner-right" title="Log out">⏻</a>
+    </div>
+</body>
+</html>
