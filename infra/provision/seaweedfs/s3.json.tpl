@@ -1,0 +1,14 @@
+{
+    "identities": [
+        {
+            "name": "hall-app",
+            "credentials": [
+                {
+                    "accessKey": "${S3_ACCESS_KEY}",
+                    "secretKey": "${S3_SECRET_KEY}"
+                }
+            ],
+            "actions": ["Read", "Write", "List", "Tagging", "Admin"]
+        }
+    ]
+}

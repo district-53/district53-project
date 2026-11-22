@@ -5,52 +5,26 @@ SEAWEED_VERSION="4.54"
 SEAWEED_IP="${SEAWEED_IP:?}"
 S3_ACCESS_KEY="${S3_ACCESS_KEY:?}"
 S3_SECRET_KEY="${S3_SECRET_KEY:?}"
+ARCH="$(dpkg --print-architecture)"
 
-if ! command -v weed >/dev/null 2>&1; then
-  ARCH="$(dpkg --print-architecture)"
-  wget -q -O /tmp/weed.tar.gz \
-    "https://github.com/seaweedfs/seaweedfs/releases/download/${SEAWEED_VERSION}/linux_${ARCH}.tar.gz"
-  tar -xzf /tmp/weed.tar.gz -C /usr/local/bin weed
-  rm /tmp/weed.tar.gz
+if ! id seaweedfs; then
+    useradd -s /usr/sbin/nologin -r -U seaweedfs
 fi
 
-id seaweedfs >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin seaweedfs
-mkdir -p /var/lib/seaweedfs /etc/seaweedfs
-chown seaweedfs:seaweedfs /var/lib/seaweedfs
+if ! command -v weed; then
+    wget -q -O /tmp/seaweedfs.tar.gz \
+        "https://github.com/seaweedfs/seaweedfs/releases/download/${SEAWEED_VERSION}/linux_${ARCH}.tar.gz"
+    tar -xzf /tmp/seaweedfs.tar.gz -C /tmp
+    install -m 755 /tmp/weed /usr/local/bin/weed
+fi
 
-cat > /etc/seaweedfs/s3.json <<EOF
-{
-  "identities": [
-    {
-      "name": "hall-app",
-      "credentials": [{ "accessKey": "${S3_ACCESS_KEY}", "secretKey": "${S3_SECRET_KEY}" }],
-      "actions": ["Read", "Write", "List", "Tagging", "Admin"]
-    }
-  ]
-}
-EOF
-chown root:seaweedfs /etc/seaweedfs/s3.json
-chmod 640 /etc/seaweedfs/s3.json
+install -d -g seaweedfs -m 750 /etc/seaweedfs 
+install -d -o seaweedfs -g seaweedfs -m 750 /var/lib/seaweedfs
 
-cat > /etc/systemd/system/seaweedfs.service <<EOF
-[Unit]
-Description=SeaweedFS (master, volume, filer, S3)
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-User=seaweedfs
-Group=seaweedfs
-ExecStart=/usr/local/bin/weed server \\
-  -ip=${SEAWEED_IP} \\
-  -dir=/var/lib/seaweedfs \\
-  -master.volumeSizeLimitMB=1024 \\
-  -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-EOF
+envsubst '${SEAWEED_IP}' < /tmp/seaweedfs/seaweedfs.service.tpl > /etc/systemd/system/seaweedfs.service
+envsubst '${S3_ACCESS_KEY} ${S3_SECRET_KEY}' < /tmp/seaweedfs/s3.json.tpl > /tmp/seaweedfs/s3.json
+install -g seaweedfs -m 640 /tmp/seaweedfs/s3.json /etc/seaweedfs/s3.json
+rm -rf /tmp/seaweedfs
 
 systemctl daemon-reload
 systemctl enable seaweedfs
