@@ -7,6 +7,8 @@ if ! id -u "$ADMIN_USER" >/dev/null 2>&1; then
 fi
 usermod -p '*' "$ADMIN_USER"
 
+usermod -p '*' vagrant
+
 SUDO_FILE="/etc/sudoers.d/90-$ADMIN_USER"
 echo "$ADMIN_USER ALL=(ALL) NOPASSWD:ALL" > "$SUDO_FILE"
 chmod 440 "$SUDO_FILE"
