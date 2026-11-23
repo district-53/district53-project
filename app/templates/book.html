@@ -50,7 +50,7 @@
                 {% endif %}
 
                 {% if current_user.role == 'noble' and current_user.house_id and entry.person.house_id == current_user.house_id %}
-                    <form method="post" action="{{ url_for('exile.exile', target_id=entry.person.id) }}" class="text-center">
+                    <form method="post" action="{{ url_for('exile.exile_user', target_id=entry.person.id) }}" class="text-center">
                         <input type="hidden" name="house" value="{{ house }}">
                         <input type="hidden" name="spread" value="{{ spread }}">
                         <button type="submit" class="btn btn-outline-danger btn-sm">Exile to the Wall</button>
