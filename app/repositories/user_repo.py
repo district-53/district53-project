@@ -1,6 +1,7 @@
 from extensions import db
 from models import Knight, User
 
+
 #write
 
 def create_user(username, email, password, role, house_id=None, photo_id=None, stats=None, knight_type="regular"):
@@ -12,7 +13,7 @@ def create_user(username, email, password, role, house_id=None, photo_id=None, s
 
     if role == "knight":
         knight = Knight(user_id=user.id, knight_type=knight_type)
-        knight.set_stats(stats["strength"], stats["dexterity"], stats["constitution"])
+        knight.set_stats(stats)
         db.session.add(knight)
 
     db.session.commit()

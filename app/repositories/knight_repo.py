@@ -3,9 +3,6 @@ from models import User, Knight, Spy
 from models.utils import today
 from services.spy_service import is_revealed
 
-STAT_NAMES = ("strength", "dexterity", "constitution")
-STAT_MIN, STAT_MAX = 1, 100
-
 def get_knight(user_id):
     return db.session.get(Knight, user_id)
 
@@ -16,7 +13,7 @@ def has_active_reveal(viewer_id, target_id):
     ).first() is not None
 
 
-def can_see_stats(viewer, knight):
+def can_see_stats(viewer: User, knight: Knight):
     if viewer.role == "noble":
         return True
     if viewer.id == knight.user_id:
@@ -31,12 +28,6 @@ def can_see_stats(viewer, knight):
     return False
 
 
-def update_stats(knight, stats):
-    for name in STAT_NAMES:
-        value = stats.get(name)
-        if value is None or not STAT_MIN <= value <= STAT_MAX:
-            raise ValueError(f"{name.capitalize()} must be a number from {STAT_MIN} to {STAT_MAX}.")
-
-    knight.strength = stats["strength"]
-    knight.dexterity = stats["dexterity"]
-    knight.constitution = stats["constitution"]
+def update_stats(knight: Knight, stats: dict):
+    knight.set_stats(stats)
+    

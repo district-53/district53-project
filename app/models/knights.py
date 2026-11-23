@@ -19,10 +19,15 @@ class Knight(db.Model):
     gossip_key = db.Column(db.String(255), unique=True)
     key_date = db.Column(db.Date)
 
-    def set_stats(self, strength, dexterity, constitution):
-        self.strength = strength
-        self.dexterity = dexterity
-        self.constitution = constitution
+    def set_stats(self, stats: dict):
+        for name, value in stats.items():
+            if not isinstance(value, int) or isinstance(value, bool) or not (1 <= value <= 100):
+                raise ValueError(f"{name} must be an integer from 1 to 100.")
+
+        self.strength = stats.get("strength")
+        self.dexterity = stats.get("dexterity")
+        self.constitution = stats.get("constitution")
+
 
     def get_stats(self) -> dict:
         return {
@@ -30,3 +35,4 @@ class Knight(db.Model):
             "dexterity": self.dexterity,
             "constitution": self.constitution,
         }
+    
