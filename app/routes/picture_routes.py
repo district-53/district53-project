@@ -26,10 +26,7 @@ def upload_my_avatar():
     current_user.photo_id = picture.id
     db.session.commit()
 
-    return jsonify(
-        picture_id=picture.id,
-        url=url_for("pictures.get_picture", picture_id=picture.id),
-    ), 201
+    return jsonify(picture_id=picture.id, url=url_for("pictures.get_picture", picture_id=picture.id)), 201
 
 
 @picture_bp.route("/pictures/<int:picture_id>", methods=["GET"])
@@ -39,8 +36,7 @@ def get_picture(picture_id):
         abort(404)
 
     data, content_type = storage.download(picture.seaweed_fid)
-    return Response(data, mimetype=content_type,
-                    headers={"Cache-Control": "public, max-age=31536000, immutable"})
+    return Response(data, mimetype=content_type, headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 @picture_bp.route("/users/<int:user_id>/avatar", methods=["GET"])

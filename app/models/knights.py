@@ -1,7 +1,7 @@
 from extensions import db
 
 KNIGHT_TYPES = ("regular", "white")
-
+STAT_NAMES = ("strength", "dexterity", "constitution")
 
 class Knight(db.Model):
     __tablename__ = "knights"
@@ -20,7 +20,8 @@ class Knight(db.Model):
     key_date = db.Column(db.Date)
 
     def set_stats(self, stats: dict):
-        for name, value in stats.items():
+        for name in STAT_NAMES:
+            value = stats.get(name)
             if not isinstance(value, int) or isinstance(value, bool) or not (1 <= value <= 100):
                 raise ValueError(f"{name} must be an integer from 1 to 100.")
 
