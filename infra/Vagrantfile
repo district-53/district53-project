@@ -65,7 +65,7 @@ Vagrant.configure("2") do |config|
       end
 
       if n[:name] == "db"
-        upload_configs(config.vm, ["postgresql-hall.conf.tpl", "pg_hba.conf.tpl", "seaweedfs.service.tpl", "seaweedfs-s3.json.tpl"])
+        upload_configs(node.vm, ["postgresql-hall.conf.tpl", "pg_hba.conf.tpl", "seaweedfs.service.tpl", "seaweedfs-s3.json.tpl"])
         node.vm.provision "db", type: "shell",
           path: "provision/db_set_up.sh",
           env: {
@@ -75,7 +75,7 @@ Vagrant.configure("2") do |config|
             "DB_LISTEN"   => DB_IP,
             "APP_IPS"     => APP_IPS,
           }
-        upload_configs(config.vm, ["seaweedfs-s3.json.tpl", "seaweedfs.service.tpl"])
+        upload_configs(node.vm, ["seaweedfs-s3.json.tpl", "seaweedfs.service.tpl"])
         node.vm.provision "seaweedfs", type: "shell",
           path: "provision/seaweedfs_set_up.sh",
           env: {
