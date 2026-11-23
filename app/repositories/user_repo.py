@@ -1,10 +1,10 @@
 from extensions import db
 from models import Knight, User
 
+
 #write
 
-def create_user(username, email, password, role, house_id=None, photo_id=None,
-                stats=None, knight_type="regular"):
+def create_user(username, email, password, role, house_id=None, photo_id=None, stats=None, knight_type="regular"):
 
     user = User(username=username, email=email, role=role, house_id=house_id, photo_id=photo_id)
     user.set_password(password)
@@ -13,7 +13,7 @@ def create_user(username, email, password, role, house_id=None, photo_id=None,
 
     if role == "knight":
         knight = Knight(user_id=user.id, knight_type=knight_type)
-        knight.set_stats(stats["strength"], stats["dexterity"], stats["constitution"])
+        knight.set_stats(stats)
         db.session.add(knight)
 
     db.session.commit()
@@ -52,8 +52,7 @@ def search_people(text, limit=10):
     safe = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{safe}%"
 
-    return (User.query
-            .filter(User.role.in_(("knight", "noble")))
+    return (User.query.filter(User.role.in_(("knight", "noble")))
             .filter(User.username.ilike(pattern, escape="\\"))
             .order_by(User.username)
             .limit(limit)

@@ -1,49 +1,77 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Sign Up</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="card">
-        {% if error %}
-            <p class="error">{{ error }}</p>
-        {% endif %}
-        <div class="roles">
-            <a href="{{ url_for('auth.signup', role='commonfolk') }}" class="btn {% if role == 'commonfolk' %}active{% endif %}">commonfolk</a>
-            <a href="{{ url_for('auth.signup', role='knight') }}" class="btn {% if role == 'knight' %}active{% endif %}">knight</a>
-            <a href="{{ url_for('auth.signup', role='noble') }}" class="btn {% if role == 'noble' %}active{% endif %}">noble</a>
+{% extends "base.html" %}
+{% block title %}Sign Up - Hall of Tourneys{% endblock %}
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card bg-dark border-warning border-2 shadow-lg mx-auto col-12 col-md-8 col-lg-5">
+        <div class="card-body p-4">
+            <h2 class="text-warning text-center font-title">Swear your oath</h2>
+            <hr class="border-warning">
+
+            {% if error %}
+                <div class="alert alert-danger py-2">{{ error }}</div>
+            {% endif %}
+
+            <div class="btn-group w-100 mb-4" role="group" aria-label="Choose your role">
+                <a href="{{ url_for('auth.signup', role='commonfolk') }}" class="btn {{ 'btn-warning' if role == 'commonfolk' else 'btn-outline-warning' }}">Commonfolk</a>
+                <a href="{{ url_for('auth.signup', role='knight') }}" class="btn {{ 'btn-warning' if role == 'knight' else 'btn-outline-warning' }}">Knight</a>
+                <a href="{{ url_for('auth.signup', role='noble') }}" class="btn {{ 'btn-warning' if role == 'noble' else 'btn-outline-warning' }}">Noble</a>
+            </div>
+
+            <form method="post" action="{{ url_for('auth.signup', role=role) }}" enctype="multipart/form-data" class="d-grid gap-3">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" name="username" placeholder="username" required>
+                    <label for="username">Username</label>
+                </div>
+                <div class="form-floating">
+                    <input type="email" class="form-control" id="email" name="email" placeholder="email" required>
+                    <label for="email">Email</label>
+                </div>
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" name="password" placeholder="password" required>
+                    <label for="password">Password</label>
+                </div>
+
+                <div>
+                    <label for="photo" class="form-label text-secondary">
+                        Portrait{% if role in ['knight', 'noble'] %} (required){% endif %}
+                    </label>
+                    <input type="file" class="form-control" id="photo" name="photo" accept="image/jpeg,image/png,image/webp"
+                           {% if role in ['knight', 'noble'] %}required{% endif %}>
+                </div>
+
+                {% if role in ['knight', 'noble'] %}
+                    <select name="house_id" class="form-select" required>
+                        <option value="">Choose your house</option>
+                        {% for house in houses %}
+                            <option value="{{ house.id }}">House {{ house.name }}</option>
+                        {% endfor %}
+                    </select>
+                {% endif %}
+
+                {% if role == 'knight' %}
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <label for="strength" class="form-label small text-secondary">Strength</label>
+                            <input type="number" class="form-control" id="strength" name="strength" placeholder="1-100" min="1" max="100" required>
+                        </div>
+                        <div class="col-4">
+                            <label for="dexterity" class="form-label small text-secondary">Dexterity</label>
+                            <input type="number" class="form-control" id="dexterity" name="dexterity" placeholder="1-100" min="1" max="100" required>
+                        </div>
+                        <div class="col-4">
+                            <label for="constitution" class="form-label small text-secondary">Constitution</label>
+                            <input type="number" class="form-control" id="constitution" name="constitution" placeholder="1-100" min="1" max="100" required>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-warning btn-lg">Confirm</button>
+            </form>
+
+            <p class="text-center mt-3 mb-0">
+                <a href="{{ url_for('auth.login') }}" class="link-warning">Already registered? Log in</a>
+            </p>
         </div>
-
-        <form class="form-box" method="post" action="{{ url_for('auth.signup', role=role) }}" enctype="multipart/form-data">
-            <input type="text" name="username" placeholder="username" required>
-            <input type="email" name="email" placeholder="email" required>
-            <input type="password" name="password" placeholder="password" required>
-
-            <label class="upload-box">
-                upload photo{% if role in ['knight', 'noble'] %} (required){% endif %}
-                <input type="file" name="photo" accept="image/jpeg,image/png,image/webp"
-                       {% if role in ['knight', 'noble'] %}required{% endif %}>
-            </label>
-
-            {% if role in ['knight', 'noble'] %}
-                <select name="house_id" required>
-                    <option value="">choose house</option>
-                    {% for house in houses %}
-                        <option value="{{ house.id }}">{{ house.name }}</option>
-                    {% endfor %}
-                </select>
-            {% endif %}
-
-            {% if role == 'knight' %}
-                <input type="number" name="strength" placeholder="strength (1-100)" min="1" max="100" required>
-                <input type="number" name="dexterity" placeholder="dexterity (1-100)" min="1" max="100" required>
-                <input type="number" name="constitution" placeholder="constitution (1-100)" min="1" max="100" required>
-            {% endif %}
-            <button type="submit" class="btn">confirm</button>
-        </form>
-        <a href="{{ url_for('auth.login') }}">already registered? log in</a>
     </div>
-</body>
-</html>
+</main>
+{% endblock %}

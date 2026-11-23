@@ -1,17 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="card">
-        <div class="top-buttons">
-            <a href="{{ url_for('auth.login') }}" class="btn">log in</a>
-            <a href="{{ url_for('auth.signup') }}" class="btn">sign up</a>
+{% extends "base.html" %}
+{% block title %}Hall of Tourneys{% endblock %}
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card bg-dark border-warning border-2 shadow-lg mx-auto text-center col-12 col-md-6 col-lg-4">
+        <div class="card-body p-5">
+            <p class="text-warning mb-1">⚔</p>
+            <h1 class="text-warning font-title">Hall of Tourneys</h1>
+            <p class="text-secondary fst-italic">The Book of Knights and Nobles of the Seven Kingdoms</p>
+            <hr class="border-warning">
+            <div class="d-grid gap-3">
+                <a href="{{ url_for('auth.login') }}" class="btn btn-warning btn-lg">Enter the Hall</a>
+                <a href="{{ url_for('auth.signup') }}" class="btn btn-outline-warning">Swear your oath (sign up)</a>
+            </div>
         </div>
-        <div class="mock-photo">mock photo</div>
     </div>
-</body>
-</html>
+</main>
+{% endblock %}

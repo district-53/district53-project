@@ -1,0 +1,17 @@
+/* Fonts that match the illuminated-manuscript portraits (Google Fonts, SIL Open Font License) */
+.font-manuscript {
+    font-family: 'IM Fell English', Georgia, serif;
+}
+
+.font-title {
+    font-family: 'Cinzel Decorative', Georgia, serif;
+}
+
+/* The book always keeps the same size: long content scrolls inside its page */
+.book-wrap {
+    width: min(960px, 100%);
+}
+
+.book-pages {
+    height: 620px;
+}

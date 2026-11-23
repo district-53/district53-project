@@ -14,12 +14,9 @@ def generate_gossip_key(user_id: int) -> str:
     while True:
         current_time = now()
         mixed_number = user_id * int(current_time.timestamp())
-        letters_list = random.choices(string.ascii_uppercase, k=4)
-        random_letters = "".join(letters_list)
+        random_letters = "".join(random.choices(string.ascii_uppercase, k=4))
         raw_string = f"{mixed_number}-{random_letters}"
-        raw_bytes = raw_string.encode("utf-8")
-        hash_object = hashlib.sha256(raw_bytes)
-        digest = hash_object.hexdigest()
+        digest = hashlib.sha256(raw_string.encode("utf-8")).hexdigest()
 
         short_hash = digest[:8].upper()
         key = f"GOSP-{short_hash}"
@@ -27,6 +24,23 @@ def generate_gossip_key(user_id: int) -> str:
         exists = Knight.query.filter_by(gossip_key=key).first()
         if not exists:
             return key
+
+
+
+def can_see_stats(viewer: User, knight: Knight):
+    if viewer.role == "noble":
+        return True
+    if viewer.id == knight.user_id:
+        return True
+    if knight.knight_type == "white":
+        return True
+    if viewer.role == "knight":
+        target = db.session.get(User, knight.user_id)
+        if target.house_id == viewer.house_id and viewer.house_id is not None:
+            return True
+        return is_revealed(viewer.id, knight.user_id)
+    return False
+
 
 
 def has_used_today(knight_id: int) -> bool:
@@ -56,12 +70,6 @@ def get_or_create_daily_gossip(knight_id: int) -> dict:
     }
 
 
-def show_stats(target_knight: Knight) -> dict:
-    return {
-        "strength": target_knight.strength,
-        "dexterity": target_knight.dexterity,
-        "constitution": target_knight.constitution,
-    }
 
 
 def use_gossip_key(viewer: User, target_entered_id: int, entered_key: str) -> dict:
@@ -77,7 +85,7 @@ def use_gossip_key(viewer: User, target_entered_id: int, entered_key: str) -> di
         raise ValueError("Target knight not found")
 
     if is_revealed(viewer.id, target_entered_id):
-        return show_stats(target_knight)
+        return target_knight.get_stats()
 
     if has_used_today(viewer.id):
         raise ValueError("You have already used your gossip key today")
@@ -96,4 +104,4 @@ def use_gossip_key(viewer: User, target_entered_id: int, entered_key: str) -> di
     db.session.add(reveal)
     db.session.commit()
 
-    return show_stats(target_knight)
+    return target_knight.get_stats()

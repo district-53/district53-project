@@ -1,69 +1,100 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{{ user.username }} - Profile</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-    <div class="card">
-        {% with messages = get_flashed_messages() %}
-            {% if messages %}
-                <div class="flash-box">
-                    {% for msg in messages %}
-                        <div>{{ msg }}</div>
-                    {% endfor %}
+{% extends "base.html" %}
+{% block title %}{{ user.username }} - Profile{% endblock %}
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card bg-dark border-warning border-2 shadow-lg mx-auto col-12 col-lg-9">
+        <div class="card-header border-warning d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('book.book') }}" class="btn btn-outline-warning btn-sm">← Book</a>
+            <span class="text-warning text-uppercase fw-bold">Profile</span>
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-warning btn-sm" title="Log out">⏻</a>
+        </div>
+
+        <div class="card-body p-4">
+            {% with messages = get_flashed_messages() %}
+                {% for msg in messages %}
+                    <div class="alert alert-warning py-2">{{ msg }}</div>
+                {% endfor %}
+            {% endwith %}
+
+            <div class="row g-4">
+                <div class="col-12 col-md-4 text-center">
+                    <label class="ratio ratio-1x1 w-75 mx-auto mb-3"
+                           {% if current_user.id == user.id %}for="photo-input" role="button" title="Click to change your portrait"{% endif %}>
+                        {% if user.photo_id %}
+                            <img class="rounded-3 border border-3 border-warning object-fit-cover"
+                                 src="{{ url_for('pictures.get_picture', picture_id=user.photo_id) }}" alt="{{ user.username }}">
+                        {% else %}
+                            <span class="rounded-3 border border-3 border-warning bg-black d-flex align-items-center justify-content-center text-secondary">no portrait</span>
+                        {% endif %}
+                    </label>
+                    {% if current_user.id == user.id %}
+                        <p class="small text-secondary">Click the portrait to change it</p>
+                    {% endif %}
+
+                    <h2 class="h3 text-warning font-title mb-1">{{ user.username }}</h2>
+                    <span class="badge text-bg-warning text-uppercase">{{ user.role }}</span>
+                    {% if house %}
+                        <p class="mt-2 mb-0">House {{ house.name }}</p>
+                        <p class="fst-italic text-secondary">"{{ house.motto }}"</p>
+                    {% endif %}
+
+                    {% if knight %}
+                        <h3 class="h6 text-uppercase border-top border-warning pt-3 mt-3">
+                            Stats
+                            {% if knight.knight_type == 'white' %}<span class="badge text-bg-light">White Knight</span>{% endif %}
+                        </h3>
+                        {% if stats %}
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item bg-transparent d-flex justify-content-between">Strength <span class="badge text-bg-warning">{{ stats.strength }}</span></li>
+                                <li class="list-group-item bg-transparent d-flex justify-content-between">Dexterity <span class="badge text-bg-warning">{{ stats.dexterity }}</span></li>
+                                <li class="list-group-item bg-transparent d-flex justify-content-between">Constitution <span class="badge text-bg-warning">{{ stats.constitution }}</span></li>
+                            </ul>
+                        {% else %}
+                            <span class="badge text-bg-secondary">🔒 hidden</span>
+                        {% endif %}
+                    {% endif %}
                 </div>
-            {% endif %}
-        {% endwith %}
 
-        <label class="avatar-label" {% if current_user.id == user.id %}for="photo-input"{% endif %}>
-            {% if user.photo_id %}
-                <img class="portrait" src="{{ url_for('pictures.get_picture', picture_id=user.photo_id) }}" alt="{{ user.username }}">
-            {% else %}
-                <div class="portrait">no photo</div>
-            {% endif %}
-            {% if current_user.id == user.id %}
-                <span class="avatar-hint">change photo</span>
-            {% endif %}
-        </label>
+                {% if current_user.id == user.id %}
+                    <div class="col-12 col-md-8">
+                        <form method="post" enctype="multipart/form-data" action="{{ url_for('profile.view_profile', user_id=user.id) }}" class="d-grid gap-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" maxlength="32" autocomplete="username" placeholder="username">
+                                <label for="username">Username</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" placeholder="email" required>
+                                <label for="email">Email</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="new password" autocomplete="new-password">
+                                <label for="password">New password (leave empty to keep)</label>
+                            </div>
 
-        <h2>{{ user.username }}</h2>
-        <p>{{ user.role }}</p>
-        {% if house %}
-            <p>House {{ house.name }}</p>
-            <p><i>{{ house.motto }}</i></p>
-        {% endif %}
+                            {% if knight %}
+                                <div class="row g-2">
+                                    <div class="col-4">
+                                        <label for="strength" class="form-label small text-secondary">Strength</label>
+                                        <input type="number" class="form-control" id="strength" name="strength" value="{{ knight.strength }}" min="1" max="100" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="dexterity" class="form-label small text-secondary">Dexterity</label>
+                                        <input type="number" class="form-control" id="dexterity" name="dexterity" value="{{ knight.dexterity }}" min="1" max="100" required>
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="constitution" class="form-label small text-secondary">Constitution</label>
+                                        <input type="number" class="form-control" id="constitution" name="constitution" value="{{ knight.constitution }}" min="1" max="100" required>
+                                    </div>
+                                </div>
+                            {% endif %}
 
-        {% if knight %}
-            <h3>Stats{% if knight.knight_type == 'white' %} · White Knight{% endif %}</h3>
-            {% if stats %}
-                <p>Strength: {{ stats.strength }}</p>
-                <p>Dexterity: {{ stats.dexterity }}</p>
-                <p>Constitution: {{ stats.constitution }}</p>
-            {% else %}
-                <p class="locked">hidden</p>
-            {% endif %}
-        {% endif %}
-
-        {% if current_user.id == user.id %}
-            <form class="form-box" method="post" enctype="multipart/form-data"
-                  action="{{ url_for('profile.view_profile', user_id=user.id) }}">
-                <input type="text" name="username" value="{{ user.username }}" maxlength="32" autocomplete="username">
-                <input type="email" name="email" value="{{ user.email }}" required>
-                <input type="password" name="password" placeholder="new password (leave empty to keep)" autocomplete="new-password">
-                {% if knight %}
-                    <input type="number" name="strength" value="{{ knight.strength }}" min="1" max="100" placeholder="strength (1-100)" required>
-                    <input type="number" name="dexterity" value="{{ knight.dexterity }}" min="1" max="100" placeholder="dexterity (1-100)" required>
-                    <input type="number" name="constitution" value="{{ knight.constitution }}" min="1" max="100" placeholder="constitution (1-100)" required>
+                            <input type="file" id="photo-input" name="photo" accept="image/png, image/jpeg, image/webp" class="d-none" onchange="this.form.submit()">
+                            <button type="submit" class="btn btn-warning btn-lg">Save changes</button>
+                        </form>
+                    </div>
                 {% endif %}
-                <input type="file" id="photo-input" name="photo" accept="image/png, image/jpeg, image/webp" hidden onchange="this.form.submit()">
-                <button type="submit" class="btn">save changes</button>
-            </form>
-        {% endif %}
-
-        <a href="{{ url_for('book.book') }}" class="corner-btn corner-left" title="Back to the book">← Book</a>
-        <a href="{{ url_for('auth.logout') }}" class="corner-btn corner-right" title="Log out">⏻</a>
+            </div>
+        </div>
     </div>
-</body>
-</html>
+</main>
+{% endblock %}

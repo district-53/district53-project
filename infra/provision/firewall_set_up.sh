@@ -7,11 +7,12 @@ APP_IPS="${APP_IPS:?}"
 APP_PORT="${APP_PORT:-8000}"
 SUBNET="${SUBNET:-192.168.56.0/24}"
 
-export DEBIAN_FRONTEND=noninteractive
-command -v ufw >/dev/null 2>&1 || { apt-get update -y; apt-get install -y ufw; }
+if ! [ -e "/usr/lib/systemd/system/ufw.service" ]; then
+  apt update -y
+  apt install -y ufw
+fi
 
-ufw --force reset >/dev/null
-
+ufw --force reset
 ufw default deny incoming
 ufw default allow outgoing
 ufw allow 22/tcp comment 'ssh'
@@ -36,7 +37,7 @@ case "$ROLE" in
     ufw allow from "$SUBNET" to any port 8301 comment 'consul lan gossip'
     ;;
   *)
-    echo "ERROR: unknown ROLE=$ROLE" >&2
+    echo "ERROR: unknown ROLE=$ROLE"
     exit 1
     ;;
 esac
