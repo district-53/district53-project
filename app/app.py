@@ -9,7 +9,7 @@ from routes.book_routes import book_bp
 from routes.picture_routes import picture_bp
 from routes.profile_routes import profile_bp
 from routes.exile_routes import exile_bp
-from data.add_data import add_people, add_houses
+from data.add_data import seed
 
 def create_app():
     app = Flask(__name__)
@@ -35,9 +35,7 @@ def create_app():
         db.create_all()
         print("Tables created")
 
-    app.cli.command("add-people")(add_people)
-
-    app.cli.command("add-houses")(add_houses)
+    app.cli.command("seed")(seed)
 
     return app
 

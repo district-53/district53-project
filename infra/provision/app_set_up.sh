@@ -44,8 +44,7 @@ fi
 if [[ "${RUN_INIT_DB:-0}" == "1" ]]; then
   cd "$APP_DIR"
   runuser -u hall -- /opt/venv/bin/flask --app app init-db
-  runuser -u hall -- /opt/venv/bin/flask --app app add-houses
-  runuser -u hall -- /opt/venv/bin/flask --app app add-people
+  runuser -u hall -- /opt/venv/bin/flask --app app seed
 fi
 
 
