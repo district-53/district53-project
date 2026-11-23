@@ -50,7 +50,7 @@ Vagrant.configure("2") do |config|
 
   config.vm.synced_folder ".", "/vagrant", disabled: true
 
-  upload_configs(config.vm, ["sshd-hardening.conf"])
+  upload_configs(config.vm, ["sshd-hardening.conf"], run: "always")
   config.vm.provision "hardening", type: "shell", run: "always",
     path: "provision/users_set_up.sh",
     env: { "ADMIN_PUBKEY" => admin_pub_key }
