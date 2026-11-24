@@ -6,51 +6,33 @@ SEAWEED_IP="${SEAWEED_IP:?}"
 S3_ACCESS_KEY="${S3_ACCESS_KEY:?}"
 S3_SECRET_KEY="${S3_SECRET_KEY:?}"
 
-if ! command -v weed >/dev/null 2>&1; then
+if ! [ -e /etc/systemd/system/seaweedfs.service ]; then
   ARCH="$(dpkg --print-architecture)"
-  wget -q -O /tmp/weed.tar.gz \
-    "https://github.com/seaweedfs/seaweedfs/releases/download/${SEAWEED_VERSION}/linux_${ARCH}.tar.gz"
+  wget -q -O /tmp/weed.tar.gz "https://github.com/seaweedfs/seaweedfs/releases/download/${SEAWEED_VERSION}/linux_${ARCH}.tar.gz"
   tar -xzf /tmp/weed.tar.gz -C /usr/local/bin weed
   rm /tmp/weed.tar.gz
 fi
 
-id seaweedfs >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin seaweedfs
-mkdir -p /var/lib/seaweedfs /etc/seaweedfs
-chown seaweedfs:seaweedfs /var/lib/seaweedfs
+if ! id seaweedfs; then
+    useradd -s /usr/sbin/nologin -r -U seaweedfs
+fi
 
-cat > /etc/seaweedfs/s3.json <<EOF
-{
-  "identities": [
-    {
-      "name": "hall-app",
-      "credentials": [{ "accessKey": "${S3_ACCESS_KEY}", "secretKey": "${S3_SECRET_KEY}" }],
-      "actions": ["Read", "Write", "List", "Tagging", "Admin"]
-    }
-  ]
-}
-EOF
+mkdir -p /var/lib/seaweedfs /etc/seaweedfs
+chown root:seaweedfs /etc/seaweedfs
+chmod 750 /etc/seaweedfs
+
+chown seaweedfs:seaweedfs /var/lib/seaweedfs
+chmod 750 /var/lib/seaweedfs
+
+
+touch /etc/seaweedfs/s3.json
 chown root:seaweedfs /etc/seaweedfs/s3.json
 chmod 640 /etc/seaweedfs/s3.json
+envsubst '${S3_ACCESS_KEY} ${S3_SECRET_KEY}' < /tmp/seaweedfs-s3.json.tpl > /etc/seaweedfs/s3.json
 
-cat > /etc/systemd/system/seaweedfs.service <<EOF
-[Unit]
-Description=SeaweedFS (master, volume, filer, S3)
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-User=seaweedfs
-Group=seaweedfs
-ExecStart=/usr/local/bin/weed server \\
-  -ip=${SEAWEED_IP} \\
-  -dir=/var/lib/seaweedfs \\
-  -master.volumeSizeLimitMB=1024 \\
-  -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json
-Restart=on-failure
-
-[Install]
-WantedBy=multi-user.target
-EOF
+envsubst '${SEAWEED_IP}' < /tmp/seaweedfs.service.tpl > /etc/systemd/system/seaweedfs.service
+chown root:root /etc/systemd/system/seaweedfs.service
+chmod 644 /etc/systemd/system/seaweedfs.service
 
 systemctl daemon-reload
 systemctl enable seaweedfs

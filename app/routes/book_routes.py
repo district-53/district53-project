@@ -4,13 +4,13 @@ from flask_login import current_user, login_required
 from extensions import db
 from models import House, Knight, User
 from services import spy_service
-from repositories.knight_repo import can_see_stats
+from services.spy_service import can_see_stats
 from repositories import user_repo
 
 book_bp = Blueprint("book", __name__)
 
 
-def person_info(person):
+def person_info(person: User):
     house = None
     knight = None
     stats = None

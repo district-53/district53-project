@@ -3,7 +3,9 @@ from flask_login import current_user, login_required
 
 from extensions import db
 from models import House, Knight, User
-from repositories.knight_repo import STAT_NAMES, can_see_stats, update_stats
+from models.knights import STAT_NAMES
+from repositories.knight_repo import update_stats
+from services.spy_service import can_see_stats
 from repositories.picture_repo import PictureError, save_picture
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
