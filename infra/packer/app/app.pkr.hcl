@@ -7,7 +7,7 @@ source "vagrant" "app" {
   add_force     = true
   insert_key    = false
 
-  output_dir = "output/d53-db"
+  output_dir = "output/d53-app"
 }
 
 build {
@@ -17,8 +17,7 @@ build {
   provisioner "shell" {
     execute_command = "{{ .Vars }} sudo -E bash '{{ .Path }}'"
     scripts = [
-      "scripts/app_setup.sh",
-      "scripts/cleanup.sh",
+      "scripts/app_setup.sh"
     ]
   }
 }
