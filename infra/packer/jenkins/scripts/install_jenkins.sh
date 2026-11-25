@@ -1,8 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-export DEBIAN_FRONTEND=noninteractive
-
 apt update -y
 apt install -y fontconfig openjdk-21-jre-headless ansible wget
 
@@ -15,4 +13,6 @@ echo "deb [signed-by=/etc/apt/keyrings/jenkins-keyring.asc] https://pkg.jenkins.
 apt update -y
 apt install -y jenkins
 
-systemctl enable jenkins
+systemctl stop jenkins
+systemctl disable jenkins
+rm -rf /var/lib/jenkins/* /var/log/jenkins/* /var/cache/jenkins/* /var/log/journal/* /var/log/journal/*
