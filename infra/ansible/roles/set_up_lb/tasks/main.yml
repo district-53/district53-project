@@ -1,5 +1,5 @@
 - name: Install packages
-  ansible.builtin.apt:
+  apt:
     name:
       - nginx
       - curl
@@ -7,9 +7,8 @@
     state: present
     update_cache: true
 
-
 - name: Generate nginx lb config
-  ansible.builtin.template:
+  template:
     src: lb_template.j2
     dest: /etc/nginx/conf.d/lb.conf
     mode: "644"
@@ -17,14 +16,14 @@
 
 
 - name: Remove default nginx site
-  ansible.builtin.file:
+  file:
     path: /etc/nginx/sites-enabled/default
     state: absent
   notify: Restart nginx
 
 
 - name: Enable and start nginx
-  ansible.builtin.service:
+  service:
     name: nginx
     state: started
     enabled: true
