@@ -72,6 +72,6 @@ build {
   }
 
   post-processor "vagrant" {
-    output = "output/ubuntu-26.04.1-{{ .Provider }}.box"
+    output = "output/d53-base-v1.box"
   }
 }
