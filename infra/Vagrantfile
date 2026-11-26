@@ -1,0 +1,142 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+BASE_NODES = [
+  { name: "db",     ip: "192.168.56.11", mem: 2048, cpus: 2 },
+  { name: "consul", ip: "192.168.56.12", mem: 1024, cpus: 1 },
+]
+
+APP_COUNT = 2
+APP_NODES = (1..APP_COUNT).map do |i|
+  { name: "app#{i}", ip: "192.168.56.#{12 + i}", mem: 2048, cpus: 2, db_client: true, init_db: i == 1 } 
+end
+
+LB_NODE = { name: "lb", ip: "192.168.56.10", mem: 1024, cpus: 1 }
+
+NODES = BASE_NODES + APP_NODES + [LB_NODE]
+
+DB_NAME = "hall"
+DB_USER = "hall_app"
+APP_IPS = NODES.select { |n| n[:name].start_with?("app") }.map { |n| n[:ip] }.join(" ")
+DB_IP   = NODES.find { |n| n[:name] == "db" }[:ip]
+APP_SRC = File.expand_path("../app", __dir__)
+
+#lb setings
+APP_PORT    = "8000"         
+LB_STRATEGY = "least_conn"  
+
+def upload_configs(vm, files, run: "once")
+  files.each do |f|
+    vm.provision "#{f}", type: "file", run: run,
+      source: "provision/config_files/#{f}",
+      destination: "/tmp/#{f}"
+  end
+end
+
+def read_secret(name)
+  file = File.expand_path("./secrets/#{name}", __dir__)
+  File.exist?(file) ? File.read(file).strip : ""
+end
+
+db_password = read_secret("db_password")
+secret_key  = read_secret("secret_key")
+s3_access_key = read_secret("s3_access_key")
+s3_secret_key = read_secret("s3_secret_key")
+
+admin_pub_key = File.read(File.expand_path("./keys/admin.pub")).strip
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/ubuntu-24.04"
+
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  upload_configs(config.vm, ["sshd-hardening.conf"], run: "always")
+  config.vm.provision "hardening", type: "shell", run: "always",
+    path: "provision/users_set_up.sh",
+    env: { "ADMIN_PUBKEY" => admin_pub_key }
+
+  NODES.each do |n|
+    config.vm.define n[:name] do |node|
+      node.vm.hostname = n[:name]
+      node.vm.network "private_network", ip: n[:ip]
+      node.vm.provider "virtualbox" do |vb|
+        vb.memory = n[:mem]
+        vb.cpus   = n.fetch(:cpus, 1)
+      end
+
+      if n[:name] == "db"
+        upload_configs(node.vm, ["postgresql-hall.conf.tpl", "pg_hba.conf.tpl", "seaweedfs.service.tpl", "seaweedfs-s3.json.tpl"])
+        node.vm.provision "db", type: "shell",
+          path: "provision/db_set_up.sh",
+          env: {
+            "DB_NAME"     => DB_NAME,
+            "DB_USER"     => DB_USER,
+            "DB_PASSWORD" => db_password,
+            "DB_LISTEN"   => DB_IP,
+            "APP_IPS"     => APP_IPS,
+          }
+        upload_configs(node.vm, ["seaweedfs-s3.json.tpl", "seaweedfs.service.tpl"])
+        node.vm.provision "seaweedfs", type: "shell",
+          path: "provision/seaweedfs_set_up.sh",
+          env: {
+            "SEAWEED_IP"    => DB_IP,
+            "S3_ACCESS_KEY" => s3_access_key,
+            "S3_SECRET_KEY" => s3_secret_key,
+          }
+      end
+
+      if n[:db_client]
+        node.vm.provision "db-client", type: "shell",
+          path: "provision/db_client_set_up.sh"
+      end
+
+      if n[:name] == "lb"
+        node.vm.network "forwarded_port", guest: 80, host: 8080
+        upload_configs(node.vm, ["nginx-lb.conf.tpl"])
+        node.vm.provision "lb", type: "shell",
+          path: "provision/lb_set_up_nginx.sh",
+          env: {
+            "APP_IPS"     => APP_IPS,
+            "APP_PORT"    => APP_PORT,
+            "LB_STRATEGY" => LB_STRATEGY,
+          }
+      end
+  
+      if n[:name] == "consul"
+        upload_configs(node.vm, ["consul.hcl"])
+        node.vm.provision "consul", type: "shell",
+          path: "provision/consul_set_up.sh"
+      end
+
+      if n[:name].start_with?("app")
+        node.vm.synced_folder APP_SRC, "/opt/hall"
+        upload_configs(node.vm, ["app.env.tpl", "hall.service"])
+        node.vm.provision "app", type: "shell",
+          path: "provision/app_set_up.sh",
+          env: {
+            "DB_NAME"       => DB_NAME,
+            "DB_USER"       => DB_USER,
+            "DB_PASSWORD"   => db_password,
+            "DB_HOST"       => DB_IP,
+            "SECRET_KEY"    => secret_key,
+            "APP_PORT"      => APP_PORT,
+            "RUN_INIT_DB"   => n[:init_db] ? "1" : "0",
+            "S3_ENDPOINT"   => "http://#{DB_IP}:8333",
+            "S3_ACCESS_KEY" => s3_access_key,
+            "S3_SECRET_KEY" => s3_secret_key,
+            "S3_BUCKET"     => "avatars",
+          }
+      end
+      fw_role = n[:name].start_with?("app") ? "app" : n[:name]
+      node.vm.provision "firewall", type: "shell", run: "always",
+        path: "provision/firewall_set_up.sh",
+        env: {
+          "ROLE"     => fw_role,
+          "LB_IP"    => LB_NODE[:ip],
+          "APP_IPS"  => APP_IPS,
+          "APP_PORT" => APP_PORT,
+          "SUBNET"   => "192.168.56.0/24",
+        }
+    end
+  end
+end
