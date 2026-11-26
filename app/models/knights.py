@@ -19,6 +19,7 @@ class Knight(db.Model):
     constitution = db.Column(db.Integer, nullable=False)
     gossip_key = db.Column(db.String(255), unique=True)
     key_date = db.Column(db.Date)
+    company_id = db.Column(db.Integer, db.ForeignKey("companies.id", use_alter=True, name="fk_knights_company_id"))
 
     @staticmethod
     def validate_stats(stats: dict):
