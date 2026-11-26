@@ -32,3 +32,4 @@ infra/secrets/
 # macOS system files
 .DS_Store
 infra/packer/*/output/
+.vagrant/

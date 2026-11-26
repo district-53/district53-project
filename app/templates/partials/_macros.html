@@ -1,0 +1,48 @@
+{% macro portrait(person, size_class='w-50') %}
+    <div class="ratio ratio-1x1 {{ size_class }} mx-auto mb-3">
+        {% if person.photo_id %}
+            <img class="rounded-3 border border-3 border-warning object-fit-cover"
+                 src="{{ url_for('pictures.get_picture', picture_id=person.photo_id) }}" alt="{{ person.username }}">
+        {% else %}
+            <div class="rounded-3 border border-3 border-warning bg-body-secondary d-flex align-items-center justify-content-center text-secondary">no portrait</div>
+        {% endif %}
+    </div>
+{% endmacro %}
+
+{% macro stats_block(card) %}
+    {% if card.knight %}
+        <h3 class="h6 text-uppercase text-center border-top border-warning pt-3">
+            Stats
+            {% if card.knight.knight_type == 'white' %}<span class="badge text-bg-light border">White Knight</span>{% endif %}
+        </h3>
+        {% if card.stats %}
+            <ul class="list-group list-group-flush mb-3">
+                {% for name in STAT_NAMES %}
+                    <li class="list-group-item bg-transparent d-flex justify-content-between">
+                        {{ name | capitalize }} <span class="badge text-bg-warning">{{ card.stats[name] }}</span>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p class="text-center"><span class="badge text-bg-secondary">🔒 hidden</span></p>
+        {% endif %}
+    {% endif %}
+{% endmacro %}
+
+{% macro stat_inputs(values={}) %}
+    <div class="row g-2">
+        {% for name in STAT_NAMES %}
+            <div class="col-4">
+                <label for="{{ name }}" class="form-label small text-secondary">{{ name | capitalize }}</label>
+                <input type="number" class="form-control" id="{{ name }}" name="{{ name }}"
+                       value="{{ values.get(name, '') }}" placeholder="1-100" min="1" max="100" required>
+            </div>
+        {% endfor %}
+    </div>
+{% endmacro %}
+
+{% macro logout_button(extra_class='') %}
+    <form method="post" action="{{ url_for('auth.logout') }}" class="d-inline">
+        <button type="submit" class="btn btn-outline-warning {{ extra_class }}" title="Log out">⏻</button>
+    </form>
+{% endmacro %}

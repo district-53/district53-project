@@ -1,0 +1,7 @@
+configuration-as-code
+git
+workflow-aggregator
+credentials
+ssh-credentials
+plain-credentials
+ssh-agent

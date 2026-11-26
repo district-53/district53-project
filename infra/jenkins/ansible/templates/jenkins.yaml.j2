@@ -1,0 +1,11 @@
+jenkins:
+  systemMessage: "Jenkins is configured by Ansible"
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "{{ jenkins_admin_password }}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false

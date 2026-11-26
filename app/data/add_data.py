@@ -1,9 +1,12 @@
 from pathlib import Path
+from sqlalchemy import select
 from werkzeug.datastructures import FileStorage
+
+from errors import DomainError
 from extensions import db
 from models import House, User
 from repositories import user_repo
-from repositories.picture_repo import save_picture, PictureError
+from repositories.picture_repo import save_picture
 
 HOUSES = [
     ("Stark",     "Winter Is Coming"),
@@ -30,9 +33,9 @@ KNIGHTS = [
 ]
 
 NOBLES = [
-    ("Ned Stark",        "Stark", "ned_stark.png"),
-    ("Cersei Lannister", "Lannister", "cersei_lannister.png"),
-    ("Olenna Tyrell",    "Tyrell", "olenna_tyrell.png"),
+    ("Ned Stark",        "Stark",   "ned_stark.png"),
+    ("Cersei Lannister", "Lannister",   "cersei_lannister.png"),
+    ("Olenna Tyrell",    "Tyrell",  "olenna_tyrell.png"),
 ]
 
 PORTRAITS_DIR = Path(__file__).resolve().parent / "portraits"
@@ -42,41 +45,43 @@ PORTRAITS = {
 }
 
 def add_houses():
+    existing = set(db.session.scalars(select(House.name)))
     for name, motto in HOUSES:
-        if not House.query.filter_by(name=name).first():
+        if name not in existing:
             db.session.add(House(name=name, motto=motto))
     db.session.commit()
 
 def add_people():
-    for username, house_name, stats, knight_type, _photo in KNIGHTS:
-        if User.query.filter_by(username=username).first():
+    houses = {house.name: house.id for house in db.session.scalars(select(House))}
+
+    for username, house_name, (strength, dexterity, constitution), knight_type, _photo in KNIGHTS:
+        if user_repo.username_taken(username):
             continue
-        house = House.query.filter_by(name=house_name).first()
         user_repo.create_user(
             username=username,
             email=username.lower().replace(" ", "_") + "@example.com",
             password=username.split()[-1].lower(),
             role="knight",
-            house_id=house.id,
-            stats={"strength": stats[0], "dexterity": stats[1], "constitution": stats[2]},
+            house_id=houses[house_name],
+            stats={"strength": strength, "dexterity": dexterity, "constitution": constitution},
             knight_type=knight_type,
         )
 
     for username, house_name, _photo in NOBLES:
-        if User.query.filter_by(username=username).first():
+        if user_repo.username_taken(username):
             continue
-        house = House.query.filter_by(name=house_name).first()
         user_repo.create_user(
             username=username,
             email=username.lower().replace(" ", "_") + "@example.com",
             password=username.split()[-1].lower(),
             role="noble",
-            house_id=house.id,
+            house_id=houses[house_name],
         )
+    db.session.commit()
 
 def add_portraits():
     for username, filename in PORTRAITS.items():
-        user = User.query.filter_by(username=username).first()
+        user = user_repo.get_user_by_username(username)
         if user is None or user.photo_id:
             continue
 
@@ -89,14 +94,12 @@ def add_portraits():
             upload = FileStorage(stream=stream, filename=filename, content_type="image/png")
             try:
                 picture = save_picture(upload, uploaded_by=user.id)
-            except PictureError as error:
-                print(f"[seed] skipped portrait for {username}: {error}")
-                db.session.rollback()
-                return
+            except DomainError as error:
+                print(f"[seed] skipped portrait for {username}: {error.message}")
+                continue
 
         user.photo_id = picture.id
-
-    db.session.commit()
+        db.session.commit()
 
 
 def seed():
