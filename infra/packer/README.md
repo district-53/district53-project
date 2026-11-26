@@ -1,4 +1,5 @@
 
+```bash
 plugins.pkr.hcl  - plugins for Packer
 ubuntu.pkr.hcl   - base box ubuntu 26.04
 
@@ -6,7 +7,7 @@ lb.pkr.hcl       - box for lb VM
 jenkins.pkr.hcl  - box for jenkins + ansible VM
 db.pkr.hcl       - box for db VM
 app.pkr.hcl      - box for app VM
-
+```
 
 
 
@@ -58,7 +59,7 @@ When it asks for a passphrase, press Enter two times (empty passphrase).
 Then give access to the private key only to your user.
 
 
-# * For arm64 change: iso_url and iso_checksum
+# * For arm64. Change: iso_url and iso_checksum
 ```ruby
 iso_url       = "https://cdimage.ubuntu.com/ubuntu/releases/26.04/release/ubuntu-26.04-live-server-arm64.iso"
 
