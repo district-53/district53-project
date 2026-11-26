@@ -1,0 +1,5 @@
+{% with messages = get_flashed_messages() %}
+    {% for message in messages %}
+        <div class="alert {{ flash_class | default('alert-warning') }} text-center py-2">{{ message }}</div>
+    {% endfor %}
+{% endwith %}
