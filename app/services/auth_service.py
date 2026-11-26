@@ -1,6 +1,6 @@
 from errors import AlreadyRegistered, ValidationError
 from extensions import db
-from models import Knight, User
+from models import Knight, User, House
 from models.user import ROLES
 from repositories import exile_repo, house_repo, picture_repo, user_repo
 from services.exile_service import hash_ip
@@ -37,16 +37,20 @@ def reg (*, role, username, email, password, house_id, is_new_house, name, motto
     if role != "knight":
         stats = None
 
+    house = None
     picture = None
     try:
         if role == "noble" and is_new_house:
-            house_id = create_new_house(name=name, motto=motto, sigil=sigil)
+            house = create_new_house(name=name, motto=motto, sigil=sigil)
+            house_id = house.id
 
         if photo is not None:
             picture = picture_repo.save_picture(photo)
         user = user_repo.create_user(username, email, password, role, house_id=house_id, photo_id=picture.id if picture else None, stats=stats)
         if picture is not None and picture.uploaded_by is None:
             picture.uploaded_by = user.id
+        if house is not None:
+            house.created_by = user.id
         exile_repo.record_ip(user.id, hash_ip(ip))
         db.session.commit()
     except Exception:
@@ -67,7 +71,7 @@ def auth (username, password, ip) -> User | None:
 
 
 
-def create_new_house(*, name, motto, sigil) -> int:
+def create_new_house(*, name, motto, sigil) -> House:
     if not name:
         raise ValidationError("House name is required")
     if house_repo.house_name_taken(name):
@@ -78,5 +82,4 @@ def create_new_house(*, name, motto, sigil) -> int:
         raise ValidationError("You must upload a house sigil")
 
     picture = picture_repo.save_picture(sigil)
-    house = house_repo.create_house(name=name, motto=motto, sigil_id=picture.id)
-    return house.id
+    return house_repo.create_house(name=name, motto=motto, sigil_id=picture.id)
