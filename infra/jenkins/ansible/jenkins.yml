@@ -1,0 +1,14 @@
+- name: Configure Jenkins
+  hosts: jenkins
+  become: true
+  tasks:
+    - name: Enable and start Jenkins service
+      ansible.builtin.systemd:
+        name: jenkins
+        enabled: true
+        state: started
+    - name: Wait for Jenkins UI
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 8080
+        timeout: 150
