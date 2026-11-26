@@ -1,0 +1,81 @@
+- name: Configure Jenkins
+  hosts: jenkins
+  become: true
+
+  vars:
+    plugin_manager_version: "2.16.0"
+    plugin_manager_jar: /opt/jenkins-plugin-manager.jar
+
+  tasks:
+    - name: Install acl
+      ansible.builtin.apt:
+        name: acl
+        state: present
+        update_cache: true
+
+    - name: Check that the admin password is set
+      ansible.builtin.assert:
+        that: jenkins_admin_password | length > 0
+        fail_msg: "Create infra/secrets/jenkins_admin_password first"
+
+    - name: Folder for the Jenkins systemd override
+      ansible.builtin.file:
+        path: /etc/systemd/system/jenkins.service.d
+        state: directory
+        mode: "0755"
+
+    - name: Disable the setup wizard
+      ansible.builtin.copy:
+        dest: /etc/systemd/system/jenkins.service.d/override.conf
+        content: |
+          [Service]
+          Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
+          Environment="CASC_JENKINS_CONFIG=/var/lib/jenkins/jenkins.yaml"
+        mode: "0644"
+
+    - name: Download the plugin manager
+      ansible.builtin.get_url:
+        url: "https://github.com/jenkinsci/plugin-installation-manager-tool/releases/download/{{ plugin_manager_version }}/jenkins-plugin-manager-{{ plugin_manager_version }}.jar"
+        dest: "{{ plugin_manager_jar }}"
+        mode: "0644"
+
+    - name: Copy the plugin list
+      ansible.builtin.copy:
+        src: plugins.txt
+        dest: /var/lib/jenkins/plugins.txt
+        owner: jenkins
+        group: jenkins
+        mode: "0644"
+      register: plugin_list
+
+    - name: Install plugins
+      ansible.builtin.command:
+        cmd: >
+          java -jar {{ plugin_manager_jar }}
+          --war /usr/share/java/jenkins.war
+          --plugin-download-directory /var/lib/jenkins/plugins
+          --plugin-file /var/lib/jenkins/plugins.txt
+      become_user: jenkins
+      when: plugin_list is changed
+
+    - name: Create JCasC config
+      ansible.builtin.template:
+        src: jenkins.yaml.j2
+        dest: /var/lib/jenkins/jenkins.yaml
+        owner: jenkins
+        group: jenkins
+        mode: "0600"
+      no_log: true
+
+    - name: Enable and restart Jenkins service
+      ansible.builtin.systemd:
+        name: jenkins
+        enabled: true
+        state: restarted
+        daemon_reload: true
+
+    - name: Wait for Jenkins UI
+      ansible.builtin.wait_for:
+        host: localhost
+        port: 8080
+        timeout: 150
