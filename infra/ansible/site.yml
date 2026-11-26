@@ -1,30 +1,26 @@
-- name: Install packages
-  ansible.builtin.apt:
-    name:
-      - nginx
-      - curl
-      - ufw
-    state: present
-    update_cache: true
+- name: Set up consul
+  hosts: consul
+  become: true
+  roles: 
+   - set_up_consul
 
 
-- name: Generate nginx lb config
-  ansible.builtin.template:
-    src: lb_template.j2
-    dest: /etc/nginx/conf.d/lb.conf
-    mode: "644"
-  notify: Restart nginx
+- name: Set up db
+  hosts: db
+  become: true
+  roles:  
+   - set_up_db
 
 
-- name: Remove default nginx site
-  ansible.builtin.file:
-    path: /etc/nginx/sites-enabled/default
-    state: absent
-  notify: Restart nginx
+- name: Set up apps
+  hosts: apps
+  become: true
+  roles:  
+   - set_up_apps
 
 
-- name: Enable and start nginx
-  ansible.builtin.service:
-    name: nginx
-    state: started
-    enabled: true
+- name: Set up lb
+  hosts: lb
+  become: true
+  roles:  
+   - set_up_lb
