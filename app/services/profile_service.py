@@ -26,7 +26,7 @@ def update_profile(user: User, *, username, email, password, stats, photo):
         if password:
             user.set_password(password)
         db.session.commit()
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         raise
 

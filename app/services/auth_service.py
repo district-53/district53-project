@@ -15,7 +15,7 @@ def reg (*, role, username, email, password, house_id, stats, photo, ip) -> User
 
     existing = user_repo.get_user_by_username(username)
     if existing and existing.email == email:
-        raise ValidationError("You already have an account")
+        raise AlreadyRegistered("You already have an account")
     if existing:
         raise ValidationError("This username already taken")
     if user_repo.email_taken(email):
@@ -43,7 +43,7 @@ def reg (*, role, username, email, password, house_id, stats, photo, ip) -> User
             picture.uploaded_by = user.id
         exile_repo.record_ip(user.id, hash_ip(ip))
         db.session.commit()
-    except Exception as e:
+    except Exception:
         db.session.rollback()
         raise
     return user

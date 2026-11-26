@@ -1,4 +1,4 @@
-from models import Knight, User
+from models import User
 from repositories import user_repo, knight_repo, house_repo
 from services.exile_service import can_exile
 from services.spy_service import can_reveal, can_see_stats
