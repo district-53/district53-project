@@ -2,6 +2,9 @@
 infra/keys/
 keys/*
 !keys/*.pub
+infra/packer/keys/
+infra/packer/output
+infra/packer/.vagrant
 # Vagrant local state
 infra/.vagrant/
 
@@ -28,4 +31,5 @@ infra/secrets/
 
 # macOS system files
 .DS_Store
+infra/packer/*/output/
 .vagrant/
