@@ -1,7 +1,7 @@
 
 source "vagrant" "app" {
   source_path   = "output/d53-base/d53-base-v1.box"
-  box_name      = "d53-base"
+  box_name      = "district53/base"
   provider      = "virtualbox"
   communicator  = "ssh"
   add_force     = true
@@ -15,9 +15,10 @@ build {
   sources = ["source.vagrant.app"]
 
   provisioner "shell" {
-    execute_command = "{{ .Vars }} sudo -E bash '{{ .Path }}'"
+    execute_command  = "sudo env {{ .Vars }} bash '{{ .Path }}'"
     scripts = [
-      "scripts/app_setup.sh"
+      "scripts/app_setup.sh",
+      "scripts/cleanup.sh"
     ]
   }
 }
