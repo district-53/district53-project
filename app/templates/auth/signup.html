@@ -40,12 +40,38 @@
                 </div>
 
                 {% if role in ['knight', 'noble'] %}
-                    <select name="house_id" class="form-select" required>
+                    <select name="house_id" class="form-select" {% if role == 'knight' %}required{% endif %}>
                         <option value="">Choose your house</option>
                         {% for house in houses %}
-                            <option value="{{ house.id }}">House {{ house.name }}</option>
+                            <option value="{{ house.id }}" {{ 'selected' if form.get('house_id') == house.id|string }}>
+                                House {{ house.name }}
+                            </option>
                         {% endfor %}
                     </select>
+
+                    {% if role == 'noble' %}
+                        {% set has_new_house = form.get('house_name') or form.get('house_motto') %}
+                        <details {{ 'open' if has_new_house }}>
+                            <summary class="text-warning small">+ Add new house</summary>
+                            <div class="border border-warning rounded p-3 mt-2 d-grid gap-2">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="house_name" name="house_name"
+                                        value="{{ form.get('house_name', '') }}" maxlength="64" placeholder="House name">
+                                    <label for="house_name">House name</label>
+                                </div>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="house_motto" name="house_motto"
+                                        value="{{ form.get('house_motto', '') }}" placeholder="Motto">
+                                    <label for="house_motto">Motto</label>
+                                </div>
+                                <div>
+                                    <label for="house_sigil" class="form-label small text-secondary">House sigil (required)</label>
+                                    <input type="file" class="form-control" id="house_sigil" name="house_sigil"
+                                        accept="image/jpeg,image/png,image/webp">
+                                </div>
+                            </div>
+                        </details>
+                    {% endif %}
                 {% endif %}
 
                 {% if role == 'knight' %}
