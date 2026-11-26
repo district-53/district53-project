@@ -30,13 +30,22 @@ def signup(role):
     if request.method == "GET":
         return render_template("auth/signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error=None)
 
+    house_name = request.form.get("house_name", "").strip()
+    house_motto = request.form.get("house_motto", "").strip()
+    house_sigil = _uploaded_photo("house_sigil")
+    is_new_house = bool(house_name or house_motto or house_sigil)
+
     try:
         user = auth_service.reg(
             role = role,
             username = request.form.get("username", "").strip(),
             email = request.form.get("email", "").strip().lower(),
             password = request.form.get('password', ""),
-            house_id = request.form.get("house_id", type=int),
+            house_id=request.form.get("house_id", type=int),
+            is_new_house=is_new_house,
+            name=house_name,
+            motto=house_motto,
+            sigil=house_sigil,
             stats = {name: request.form.get(name, type=int) for name in STAT_NAMES},
             photo = _uploaded_photo("photo"),
             ip = request.remote_addr or "",
