@@ -7,8 +7,9 @@ chmod 700 /home/vagrant/.ssh
 chown vagrant:vagrant /home/vagrant/.ssh
 
 
-curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub \
+curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/refs/heads/main/keys/vagrant.pub \
   >> /home/vagrant/.ssh/authorized_keys
+
 
 chmod 600 /home/vagrant/.ssh/authorized_keys
 chown vagrant:vagrant /home/vagrant/.ssh/authorized_keys
