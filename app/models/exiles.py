@@ -8,4 +8,4 @@ class Exile(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"), unique=True, nullable=False)
     exiled_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
     reason = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime(timezone=True), default=now(), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=now, nullable=False)

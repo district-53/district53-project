@@ -65,9 +65,10 @@ def search_people(text, limit=10):
     safe = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{safe}%"
 
-    return (db.session.scalars(
+    query = (
         select(User)
-        .where(User.role.in_(("knight", "noble")), User.username.ilike(pattern, escape="\\")))
+        .where(User.role.in_(("knight", "noble")), User.username.ilike(pattern, escape="\\"))
         .order_by(User.username)
         .limit(limit)
-        .all())
+    )
+    return db.session.scalars(query).all()

@@ -14,7 +14,7 @@ def view_profile(user_id):
     user = user_repo.get_user(user_id)
     if user is None:
         abort(404)
-    return render_template("profile.html", user=user, card=book_service.build_card(current_user, user))
+    return render_template("book/profile.html", user=user, card=book_service.build_page(current_user, user))
 
 @profile_bp.route("/<int:user_id>", methods=["POST"])
 @login_required

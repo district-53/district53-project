@@ -9,7 +9,9 @@ from repositories import gossip_repo, knight_repo
 
 def _new_gossip_key() -> str:
     while True:
-        key = "GOSP-" + secrets.token_hex(4).upper
+        key = "GOSP-" + secrets.token_hex(4).upper()
+        if not gossip_repo.key_exists(key): 
+            return key
 
 
 def can_reveal(viewer: User, knight: Knight, stats_visible: bool) -> bool:
@@ -66,7 +68,7 @@ def use_gossip_key(viewer: User, target_id: int, entered_key: str) -> dict:
     if viewer_knight.key_date != today() or not viewer_knight.gossip_key:
         raise ValidationError("Your gossip key has expired, refresh the page")
 
-    if secrets.compare_digest(entered_key, viewer_knight.gossip_key):
+    if not secrets.compare_digest(entered_key, viewer_knight.gossip_key):
         raise ValidationError("Invalid gossip key")
 
     gossip_repo.add_reveal(viewer.id, target_id)

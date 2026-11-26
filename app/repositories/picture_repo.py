@@ -1,12 +1,13 @@
 import hashlib
 
+from errors import ValidationError
 from sqlalchemy import select
 from extensions import db, storage
 from models import Picture
 from storage import ALLOWED_IMAGE_TYPES
 
 
-class PictureError(ValueError):
+class PictureError(ValidationError):
     pass
 
 

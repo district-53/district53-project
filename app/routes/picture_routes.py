@@ -27,7 +27,7 @@ def upload_my_avatar():
 @picture_bp.route("/pictures/<int:picture_id>", methods=["GET"])
 def get_picture(picture_id):
     picture = picture_repo.get_picture(picture_id)
-    if picture is None or not storage.is_enabled:
+    if picture is None or not storage.is_enabled():
         abort(404)
 
     data, content_type = storage.download(picture.s3_key)

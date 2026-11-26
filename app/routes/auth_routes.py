@@ -12,13 +12,13 @@ auth_bp = Blueprint("auth", __name__)
 
 def _uploaded_photo(name: str):
     photo = request.files.get(name)
-    return photo if photo is not None else None
+    return photo if photo is not None and photo.filename else None
 
 @auth_bp.route("/")
 def index():
     if current_user.is_authenticated:
         return redirect(url_for('book.book'))
-    return render_template("index.html")
+    return render_template("auth/index.html")
 
 @auth_bp.route('/signup', defaults={'role': 'commonfolk'}, methods=['GET', 'POST'])
 @auth_bp.route('/signup/<role>', methods=['GET', 'POST'])
@@ -28,7 +28,7 @@ def signup(role):
     if role not in ROLES:
         return redirect(url_for('auth.signup', role='commonfolk'))
     if request.method == "GET":
-        return render_template("signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error=error)
+        return render_template("auth/signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error=None)
 
     try:
         user = auth_service.reg(
@@ -45,7 +45,7 @@ def signup(role):
         flash(error.message)
         return redirect(url_for("auth.login"))
     except DomainError as error:
-        return render_template("signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error=error.message), 400
+        return render_template("auth/signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error=error.message), 400
 
     login_user(user)
     return redirect(url_for("book.book"))
@@ -68,7 +68,7 @@ def login():
             return redirect(url_for('book.book'))
         flash("Wrong username or password")
 
-    return render_template('login.html')
+    return render_template('auth/login.html')
 
 
 @auth_bp.route('/logout', methods=["POST"])
@@ -82,5 +82,5 @@ def logout():
 def file_too_large(e):
     if request.endpoint == "auth.signup":
         role = (request.view_args or {}).get("role") or "commonfolk"
-        return render_template("signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error="Photo must be smaller than 5 MB"), 413
+        return render_template("auth/signup.html", role=role, houses=house_repo.list_houses(), form=request.form, error="Photo must be smaller than 5 MB"), 413
     return jsonify(error="File is too large (max 5 MB)"), 413

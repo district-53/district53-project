@@ -34,10 +34,11 @@ def reg (*, role, username, email, password, house_id, stats, photo, ip) -> User
     else:
         stats = None
 
+    picture = None
     try:
         if photo is not None:
             picture = picture_repo.save_picture(photo)
-        user = user_repo.create_user(username, email, password, role, house_id=house_id, photo_id=picture.id, stats=stats)
+        user = user_repo.create_user(username, email, password, role, house_id=house_id, photo_id=picture.id if picture else None, stats=stats)
         if picture is not None and picture.uploaded_by is None:
             picture.uploaded_by = user.id
         exile_repo.record_ip(user.id, hash_ip(ip))

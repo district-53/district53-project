@@ -6,8 +6,8 @@ ALLOWED_IMAGE_TYPES = {"image/jpeg": "jpg", "image/png": "png", "image/webp": "w
 
 class Storage:
     def __init__(self):
-        _s3 = None
-        _bucket = None
+        self._s3 = None
+        self._bucket = None
 
     def init_storage(self, app):
         app.extensions["storage"] = self

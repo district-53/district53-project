@@ -1,8 +1,11 @@
 from flask import Flask
 from config import Config
 from werkzeug.middleware.proxy_fix import ProxyFix
+
+from errors import register_error_handlers
 from cli import command_reg
 from extensions import db, login_manager, storage
+from models.knights import STAT_NAMES
 from routes.auth_routes import auth_bp
 from routes.book_routes import book_bp
 from routes.picture_routes import picture_bp
@@ -25,14 +28,10 @@ def create_app():
     app.register_blueprint(picture_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(exile_bp)
-
+    
+    register_error_handlers(app)
     command_reg(app)
-
+    
+    app.jinja_env.globals["STAT_NAMES"] = STAT_NAMES
+    
     return app
-
-
-
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(debug=True)

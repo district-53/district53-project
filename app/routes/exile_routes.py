@@ -19,7 +19,7 @@ def check_exile():
 
 @exile_bp.route("/exile", methods=["GET"])
 def exile():
-    return render_template("exile.html")
+    return render_template("exile/exile.html")
     
 
 

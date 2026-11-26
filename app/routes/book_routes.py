@@ -17,7 +17,7 @@ def book():
     if current_user.role == "knight":
         gossip = spy_service.get_or_create_daily_gossip(current_user.id)
 
-    return render_template("book.html", kind=kind, house=house, houses=house_repo.list_houses(), gossip=gossip, **page)
+    return render_template("book/book.html", kind=kind, house=house, houses=house_repo.list_houses(), gossip=gossip, **page)
 
 @book_bp.route("/book/reveal/<int:target_id>", methods=["POST"])
 @login_required

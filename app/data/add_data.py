@@ -81,7 +81,7 @@ def add_people():
 
 def add_portraits():
     for username, filename in PORTRAITS.items():
-        user = user_repo.get_by_username(username)
+        user = user_repo.get_user_by_username(username)
         if user is None or user.photo_id:
             continue
 

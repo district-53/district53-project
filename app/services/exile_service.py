@@ -21,7 +21,7 @@ def to_exile(target_id: int, exiled_by: User):
         raise NotAllowed("NotAllowed")
 
     target.is_exiled = True
-    exile_repo.create_exile_record(user_id=target_id, exiled_by=exiled_by)
+    exile_repo.create_exile_record(user_id=target_id, exiled_by=exiled_by.id)
     db.session.commit()
 
 
