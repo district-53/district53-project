@@ -1,3 +1,20 @@
+def selectImage() {
+    def images = []
+    if (params.db)      { images.add('db') }
+    if (params.app)     { images.add('app') }
+    if (params.lb)      { images.add('lb') }
+    if (params.jenkins) { images.add('jenkins') }
+
+    def baseMissing = sh(script: 'vagrant box list | grep -q "^district53/base "', returnStatus: true) != 0
+    if (params.base || (!images.isEmpty() && baseMissing)) {
+        images.add(0, 'base')
+    }
+
+    if (images.isEmpty()) { error('Select at least one image') }
+
+    return images
+}
+
 pipeline {
     agent any
     parameters {
@@ -10,30 +27,6 @@ pipeline {
     }
 
     stages {
-        stage('Select images') {
-            steps {
-                dir('infra/packer') {
-                    script {
-                        def images = []
-                        if (params.db)      { images.add('db') }
-                        if (params.app)     { images.add('app') }
-                        if (params.lb)      { images.add('lb') }
-                        if (params.jenkins) { images.add('jenkins') }
-
-                        def baseMissing = sh(script: 'vagrant box list | grep -q "^district53/base "', returnStatus: true) != 0
-                        if (params.base || (!images.isEmpty() && baseMissing)) {
-                            images.add(0, 'base')
-                        }
-
-                        if (images.isEmpty()) { error('Select at least one image') }
-
-                        env.IMAGES = images.join(' ')
-                        echo "Selected images: ${env.IMAGES}"
-                    }
-                }
-            }
-        }
-
         stage('Init') {
             steps {
                 dir('infra/packer') {
@@ -46,7 +39,7 @@ pipeline {
             steps {
                 dir('infra/packer') {
                     script {
-                        for (img in env.IMAGES.split(' ')) {
+                        for (img in selectImage()) {
                             sh("packer validate ${img}.pkr.hcl")
                         }
                     }
@@ -66,7 +59,7 @@ pipeline {
                             lb: 'output/d53-lb/package.box',
                             jenkins: 'output/jenkins/package.box',
                         ]
-                        for (img in env.IMAGES.split(' ')) {
+                        for (img in selectImage()) {
                             sh("packer build -force ${img}.pkr.hcl")
                             sh("vagrant box add --force --name district53/${img} ${boxFiles[img]}")
                         }
