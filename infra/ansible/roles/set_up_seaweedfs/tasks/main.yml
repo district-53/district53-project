@@ -39,3 +39,11 @@
     host: "{{ seaweed_ip }}"
     port: "{{ s3_port }}"
     timeout: 60
+
+- name: Firewall - S3 only from app VMs
+  community.general.ufw:
+    rule: allow
+    port: "8333"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ groups['apps'] }}"

@@ -89,3 +89,11 @@
     enabled: true
     state: started
     daemon_reload: true
+
+- name: Firewall - app only from the lb
+  community.general.ufw:
+    rule: allow
+    port: "8000"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ groups['lb'] }}"

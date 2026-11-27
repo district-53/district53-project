@@ -18,3 +18,9 @@
     name: nginx
     state: started
     enabled: true
+
+- name: Firewall - http from everyone
+  community.general.ufw:
+    rule: allow
+    port: "80"
+    proto: tcp

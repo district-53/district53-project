@@ -7,6 +7,23 @@
     mode: "0640"
   notify: Restart consul
 
+- name: Firewall on every VM
+  community.general.ufw:
+    rule: allow
+    port: "8301"
+    from_ip: 192.168.56.0/24
+
+- name: Firewall on consul VM only
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    from_ip: 192.168.56.0/24
+  loop:
+    - "8300"
+    - "8500"
+  when: "'consul' in group_names"
+
 - name: Start consul
   service:
     name: consul
