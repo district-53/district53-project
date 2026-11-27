@@ -17,8 +17,11 @@ pipeline {
         stage('Ping') {
             steps {
                 dir('infra/ansible') {
-                    withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')]) {
-                        sh('ansible "$LIMIT" -m ping --private-key "$SSH_KEY"')
+                    withCredentials([
+                        sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY'),
+                        file(credentialsId: 'ansible-vault-pass', variable: 'VAULT_FILE')
+                    ]) {
+                        sh('ansible "$LIMIT" -m ping --private-key "$SSH_KEY" --vault-password-file "$VAULT_FILE"')
                     }
                 }
             }
