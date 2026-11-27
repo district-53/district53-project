@@ -1,0 +1,15 @@
+[Unit]
+Description=Hall app
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{ user }}
+WorkingDirectory={{ app_dir }}
+EnvironmentFile={{ app_env_file }}
+ExecStart={{ env_dir }}/bin/gunicorn -b 0.0.0.0:{{ app_port }} --workers {{ app_gunicorn_workers }} --threads {{ app_gunicorn_threads }} --worker-class gthread --access-logfile - app:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

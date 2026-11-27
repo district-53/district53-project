@@ -1,0 +1,15 @@
+#initialize user and important directories for the app role
+user: hall
+group: hall
+app_home: /var/lib/hall
+app_dir: /opt/hall
+env_dir: /etc/hall
+app_env_file: "{{ env_dir }}/app.env"
+app_port: 8000
+
+
+db_user: hall
+db_name: hall
+db_host: 192.168.56.11
+app_gunicorn_workers: 2
+app_gunicorn_threads: 4

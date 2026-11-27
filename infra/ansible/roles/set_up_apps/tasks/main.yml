@@ -1,0 +1,93 @@
+
+# init required secrets
+- name: Validate required secrets
+  ansible.builtin.assert:
+    that:
+      - db_password is defined and db_password | length > 0
+      - secret_key is defined and secret_key | length > 0
+      - s3_access_key is defined and s3_access_key | length > 0
+      - s3_secret_key is defined and s3_secret_key | length > 0
+
+    fail_msg: "<One of required secrets is empty"
+    quiet: true
+  #no_log: true
+
+# create user and directories
+- name: Create app user
+  ansible.builtin.user:
+    name: "{{ user }}"
+    group: "{{ group }}"
+    home: "{{ app_home }}"
+    shell: /usr/sbin/nologin
+    create_home: true  
+
+- name: Create app directories
+  ansible.builtin.file:
+    path: "{{ app_home }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+
+#create env file and directory
+- name: create env directory
+  ansible.builtin.file:
+    path: "{{ env_dir }}"
+    state: directory
+    owner: "{{ user }}"
+    group: "{{ group }}"
+    mode: "0755"
+
+- name: check env file
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: "{{ app_env_file }}"
+    owner: root
+    group: "{{ group }}"
+    mode: "0640"
+  #no_log: true
+  notify: Restart hall
+
+#install python3-venv and requirements
+- name: Install python3-venv
+  ansible.builtin.apt:
+    name: python3-venv
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Install requirements into venv
+  ansible.builtin.pip:
+    requirements: "{{ app_dir }}/requirements.txt"
+    virtualenv: "{{ env_dir }}"
+    virtualenv_command: python3 -m venv
+  notify: Restart hall
+
+#init+seed db
+#- name: Init database
+#  ansible.builtin.command:
+#    cmd: "{{ env_dir }}/bin/flask --app app {{ item }}"
+#    chdir: "{{ app_dir }}"
+#  become_user: "{{ user }}"
+#  loop:
+#    - init-db
+#    - seed
+#  when: app_run_init_db | bool
+#  changed_when: true
+
+#create service
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: hall.service.j2
+    dest: /etc/systemd/system/hall.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart hall
+
+- name: Enable and start hall
+  ansible.builtin.systemd:
+    name: hall
+    enabled: true
+    state: started
+    daemon_reload: true
