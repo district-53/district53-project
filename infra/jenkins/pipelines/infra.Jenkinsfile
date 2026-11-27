@@ -18,7 +18,7 @@ pipeline {
         booleanParam(name: 'app1', defaultValue: false, description: 'app1 VM')
         booleanParam(name: 'app2', defaultValue: false, description: 'app2 VM')
         booleanParam(name: 'lb', defaultValue: false, description: 'lb VM')
-        choice(name: 'action', choices: ['up', 'reload', 'destroy'], description: 'what to do with the selected VMs')
+        choice(name: 'action', choices: ['up', 'reload', 'halt', 'destroy'], description: 'what to do with the selected VMs')
     }
 
     stages {
@@ -45,6 +45,15 @@ pipeline {
             steps {
                 dir('infra/packer') {
                     sh("vagrant reload ${selectedVms()}")
+                }
+            }
+        }
+
+        stage('Halt') {
+            when { expression { params.action == 'halt' } }
+            steps {
+                dir('infra/packer') {
+                    sh("vagrant halt ${selectedVms()}")
                 }
             }
         }
