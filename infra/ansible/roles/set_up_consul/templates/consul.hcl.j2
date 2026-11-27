@@ -1,0 +1,15 @@
+data_dir   = "/opt/consul"
+node_name  = "{{ inventory_hostname }}"
+bind_addr  = "{{ inventory_hostname }}"
+retry_join = ["192.168.56.12"]
+
+{% if 'consul' in group_names %}
+server           = true
+bootstrap_expect = 1
+client_addr      = "0.0.0.0"
+ui_config {
+  enabled = true
+}
+{% else %}
+server = false
+{% endif %}
