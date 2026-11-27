@@ -16,7 +16,7 @@ def selectImage() {
 }
 
 pipeline {
-    agent any
+    agent { label 'host' }
     parameters {
         booleanParam(name: 'base', defaultValue: false, description: 'Rebuild the base image')
         booleanParam(name: 'db', defaultValue: false, description: 'db image')

@@ -11,7 +11,7 @@ def selectedVms() {
 }
 
 pipeline {
-    agent any
+    agent { label 'host' }
     parameters {
         booleanParam(name: 'db', defaultValue: false, description: 'db VM')
         booleanParam(name: 'consul', defaultValue: false, description: 'consul VM')
