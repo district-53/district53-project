@@ -2,7 +2,8 @@
 infra/keys/
 keys/*
 !keys/*.pub
-infra/packer/keys/
+infra/packer/keys/*
+!infra/packer/keys/*.pub
 infra/packer/output
 infra/packer/packer_cache/
 infra/packer/.vagrant

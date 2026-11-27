@@ -52,10 +52,10 @@ jobs:
               scm {
                 git {
                   remote { url('https://github.com/district-53/district53-project.git') }
-                  branch('*/main')
+                  branch('*/{{ jenkins_branch | default("main") }}')
                 }
               }
-              scriptPath("infra/jenkins/pipelines/${name}.Jenkinsfile")
+              scriptPath('infra/jenkins/pipelines/' + name + '.Jenkinsfile')
             }
           }
         }
