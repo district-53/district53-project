@@ -1,3 +1,15 @@
+def selectedVms() {
+    def vms = []
+    if (params.db)     { vms.add('db') }
+    if (params.consul) { vms.add('consul') }
+    if (params.app1)   { vms.add('app1') }
+    if (params.app2)   { vms.add('app2') }
+    if (params.lb)     { vms.add('lb') }
+    if (vms.isEmpty()) { error('Select at least one VM') }
+
+    return vms.join(' ')
+}
+
 pipeline {
     agent any
     parameters {
@@ -10,29 +22,11 @@ pipeline {
     }
 
     stages {
-        stage('Select VMs') {
-            steps {
-                script {
-                    def vms = []
-                    if(params.db) { vms.add('db') }
-                    if(params.consul) { vms.add('consul') }
-                    if(params.app1)   { vms.add('app1') }
-                    if(params.app2)   { vms.add('app2') }
-                    if(params.lb)     { vms.add('lb') }
-                    if(vms.isEmpty()) {error('Select at least one VM')}
-
-                    env.VMS = vms.join(' ')
-                    echo "Selected VMs: ${env.VMS}"
-
-                }
-            }
-        }
-
         stage('Destroy') {
             when { expression { params.action == 'destroy' } }
             steps {
                 dir('infra/packer') {
-                    sh('vagrant destroy -f $VMS')
+                    sh("vagrant destroy -f ${selectedVms()}")
                 }
             }
         }
@@ -41,7 +35,7 @@ pipeline {
             when { expression { params.action == 'up' } }
             steps {
                 dir('infra/packer') {
-                    sh('vagrant up $VMS')
+                    sh("vagrant up ${selectedVms()}")
                 }
             }
         }
@@ -50,9 +44,14 @@ pipeline {
             when { expression { params.action == 'reload' } }
             steps {
                 dir('infra/packer') {
-                    sh('vagrant reload $VMS')
+                    sh("vagrant reload ${selectedVms()}")
                 }
             }
+        }
+    }
+    post {
+        cleanup {
+            cleanWs()
         }
     }
 }
