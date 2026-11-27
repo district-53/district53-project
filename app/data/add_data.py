@@ -106,3 +106,4 @@ def seed():
     add_houses()
     add_people()
     add_portraits()
+
