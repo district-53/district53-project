@@ -1,5 +1,6 @@
 jenkins:
   systemMessage: "Jenkins is configured by Ansible"
+  numExecutors: 2
   securityRealm:
     local:
       allowsSignup: false
@@ -9,3 +10,53 @@ jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
+
+  nodes:
+    - permanent:
+        name: "host"
+        labelString: "host"
+        numExecutors: 1
+        remoteFS: 'C:\jenkins-agent'
+        launcher:
+          inbound:
+            webSocket: true
+
+unclassified:
+  location:
+    url: "http://192.168.56.30:8080/"
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: "ansible-ssh-key"
+              username: "ansible"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${readFile:/var/lib/jenkins/casc_secrets/ansible_key}"
+          - file:
+              scope: GLOBAL
+              id: "ansible-vault-pass"
+              fileName: "vault_password"
+              secretBytes: "${readFileBase64:/var/lib/jenkins/casc_secrets/vault_password}"
+
+jobs:
+  - script: |
+      def pipelines = ['packer', 'infra', 'config']
+      pipelines.each { name ->
+        pipelineJob(name) {
+          definition {
+            cpsScm {
+              scm {
+                git {
+                  remote { url('https://github.com/district-53/district53-project.git') }
+                  branch('*/main')
+                }
+              }
+              scriptPath("infra/jenkins/pipelines/${name}.Jenkinsfile")
+            }
+          }
+        }
+      }

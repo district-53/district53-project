@@ -1,21 +1,26 @@
-admin_password_file = File.expand_path("../secrets/jenkins_admin_password", __dir__)
-jenkins_admin_password = File.exist?(admin_password_file) ? File.read(admin_password_file).strip : ""
+secrets = File.expand_path("../secrets", __dir__)
+read_secret = ->(name) { f = File.join(secrets, name); File.exist?(f) ? File.read(f).strip : "" }
+
 Vagrant.configure("2") do |config|
   config.vm.define "jenkins" do |jenkins|
-    jenkins.vm.box = ENV.fetch("JENKINS_BOX", "district53/ubuntu-26.04")
+    jenkins.vm.box = ENV.fetch("JENKINS_BOX", "district53/base")
     jenkins.vm.hostname = "jenkins"
-    jenkins.vm.network "private_network", ip: "192.168.56.20"
+    jenkins.vm.network "private_network", ip: "192.168.56.30"
     jenkins.vm.provider "virtualbox" do |vb|
+      vb.name   = "d53-jenkins"
       vb.memory = 4096
-      vb.cpus = 2
+      vb.cpus   = 2
     end
   end
+
   config.vm.provision "ansible_local" do |ansible|
     ansible.install = true
     ansible.compatibility_mode = "2.0"
     ansible.playbook = "ansible/jenkins.yml"
     ansible.extra_vars = {
-        jenkins_admin_password: jenkins_admin_password,
+      jenkins_admin_password: read_secret.("jenkins_admin_password"),
+      ansible_ssh_key: read_secret.("ansible_key"),
+      vault_password: read_secret.("vault_password"),
     }
   end
 end

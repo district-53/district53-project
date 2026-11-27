@@ -7,19 +7,25 @@
     plugin_manager_jar: /opt/jenkins-plugin-manager.jar
 
   tasks:
-    - name: Install acl and Java
+    - name: Check that the secrets are set
+      ansible.builtin.assert:
+        that:
+          - jenkins_admin_password | length > 0
+          - ansible_ssh_key | length > 0
+          - vault_password | length > 0
+        fail_msg: "Create jenkins_admin_password, ansible_key and vault_password in infra/secrets/ first"
+      no_log: true
+
+    - name: Install Java, git and Ansible
       ansible.builtin.apt:
         name:
           - acl
           - fontconfig
           - openjdk-21-jre-headless
+          - git
+          - ansible
         state: present
         update_cache: true
-
-    - name: Check that the admin password is set
-      ansible.builtin.assert:
-        that: jenkins_admin_password | length > 0
-        fail_msg: "Create infra/secrets/jenkins_admin_password first"
 
     - name: Folder for apt keys
       ansible.builtin.file:
@@ -51,7 +57,7 @@
         state: directory
         mode: "0755"
 
-    - name: Disable the setup wizard
+    - name: Disable the setup wizard, point to JCasC
       ansible.builtin.copy:
         dest: /etc/systemd/system/jenkins.service.d/override.conf
         content: |
@@ -59,6 +65,7 @@
           Environment="JAVA_OPTS=-Djava.awt.headless=true -Djenkins.install.runSetupWizard=false"
           Environment="CASC_JENKINS_CONFIG=/var/lib/jenkins/jenkins.yaml"
         mode: "0644"
+      notify: Restart Jenkins
 
     - name: Download the plugin manager
       ansible.builtin.get_url:
@@ -84,6 +91,28 @@
           --plugin-file /var/lib/jenkins/plugins.txt
       become_user: jenkins
       when: plugin_list is changed
+      notify: Restart Jenkins
+
+    - name: Folder for secrets that JCasC reads
+      ansible.builtin.file:
+        path: /var/lib/jenkins/casc_secrets
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: "0700"
+
+    - name: Write secret files
+      ansible.builtin.copy:
+        dest: "/var/lib/jenkins/casc_secrets/{{ item.name }}"
+        content: "{{ item.value }}\n"
+        owner: jenkins
+        group: jenkins
+        mode: "0600"
+      loop:
+        - { name: ansible_key,    value: "{{ ansible_ssh_key }}" }
+        - { name: vault_password, value: "{{ vault_password }}" }
+      no_log: true
+      notify: Restart Jenkins
 
     - name: Create JCasC config
       ansible.builtin.template:
@@ -93,14 +122,23 @@
         group: jenkins
         mode: "0600"
       no_log: true
+      notify: Restart Jenkins
 
-    - name: Enable and restart Jenkins service
+    - name: Enable and start Jenkins
       ansible.builtin.systemd:
         name: jenkins
         enabled: true
+        state: started
+        daemon_reload: true
+
+  handlers:
+    - name: Restart Jenkins
+      ansible.builtin.systemd:
+        name: jenkins
         state: restarted
         daemon_reload: true
 
+  post_tasks:
     - name: Wait for Jenkins UI
       ansible.builtin.wait_for:
         host: localhost

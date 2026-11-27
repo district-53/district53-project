@@ -4,10 +4,10 @@ After=network-online.target
 Wants=network-online.target
 
 [Service]
-User={{ user }}
-WorkingDirectory={{ app_dir }}
-EnvironmentFile={{ app_env_file }}
-ExecStart={{ env_dir }}/bin/gunicorn -b 0.0.0.0:{{ app_port }} --workers {{ app_gunicorn_workers }} --threads {{ app_gunicorn_threads }} --worker-class gthread --access-logfile - app:app
+User=hall
+WorkingDirectory=/opt/hall
+EnvironmentFile=/etc/hall/app.env
+ExecStart=/opt/venv/bin/gunicorn -b 0.0.0.0:{{ app_port }} --workers 2 --threads 4 --worker-class gthread --access-logfile - 'app:create_app()'
 Restart=always
 RestartSec=5
 

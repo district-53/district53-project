@@ -2,6 +2,7 @@ configuration-as-code
 git
 workflow-aggregator
 credentials
+credentials-binding
 ssh-credentials
 plain-credentials
-ssh-agent
+job-dsl

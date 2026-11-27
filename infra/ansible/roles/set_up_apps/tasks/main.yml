@@ -1,5 +1,3 @@
-
-# init required secrets
 - name: Validate required secrets
   ansible.builtin.assert:
     that:
@@ -7,48 +5,37 @@
       - secret_key is defined and secret_key | length > 0
       - s3_access_key is defined and s3_access_key | length > 0
       - s3_secret_key is defined and s3_secret_key | length > 0
-
-    fail_msg: "<One of required secrets is empty"
+    fail_msg: "One of the required secrets is empty"
     quiet: true
-  #no_log: true
+  no_log: true
 
-# create user and directories
+# ---------- user and folders ----------
 - name: Create app user
   ansible.builtin.user:
-    name: "{{ user }}"
-    group: "{{ group }}"
-    home: "{{ app_home }}"
+    name: hall
+    group: hall
+    home: /var/lib/hall
     shell: /usr/sbin/nologin
-    create_home: true  
+    create_home: true
 
-- name: Create app directories
+- name: Create env directory
   ansible.builtin.file:
-    path: "{{ app_home }}"
+    path: /etc/hall
     state: directory
-    owner: "{{ user }}"
-    group: "{{ group }}"
-    mode: "0755"
-
-#create env file and directory
-- name: create env directory
-  ansible.builtin.file:
-    path: "{{ env_dir }}"
-    state: directory
-    owner: "{{ user }}"
-    group: "{{ group }}"
-    mode: "0755"
-
-- name: check env file
-  ansible.builtin.template:
-    src: app.env.j2
-    dest: "{{ app_env_file }}"
     owner: root
-    group: "{{ group }}"
-    mode: "0640"
-  #no_log: true
+    group: "hall"
+    mode: "0750"
+
+# ---------- code ----------
+- name: Copy app code
+  ansible.builtin.copy:
+    src: "{{ playbook_dir }}/../../app/"
+    dest: /opt/hall/
+    owner: root
+    group: hall
   notify: Restart hall
 
-#install python3-venv and requirements
+# ---------- python ----------
 - name: Install python3-venv
   ansible.builtin.apt:
     name: python3-venv
@@ -58,24 +45,22 @@
 
 - name: Install requirements into venv
   ansible.builtin.pip:
-    requirements: "{{ app_dir }}/requirements.txt"
-    virtualenv: "{{ env_dir }}"
+    requirements: /opt/hall/requirements.txt
+    virtualenv: /opt/venv
     virtualenv_command: python3 -m venv
   notify: Restart hall
 
-#init+seed db
-#- name: Init database
-#  ansible.builtin.command:
-#    cmd: "{{ env_dir }}/bin/flask --app app {{ item }}"
-#    chdir: "{{ app_dir }}"
-#  become_user: "{{ user }}"
-#  loop:
-#    - init-db
-#    - seed
-#  when: app_run_init_db | bool
-#  changed_when: true
+# ---------- config ----------
+- name: App env file (secrets)
+  ansible.builtin.template:
+    src: app.env.j2
+    dest: /etc/hall/app.env
+    owner: root
+    group: hall
+    mode: "0640"
+  no_log: true
+  notify: Restart hall
 
-#create service
 - name: Install systemd unit
   ansible.builtin.template:
     src: hall.service.j2
@@ -85,6 +70,19 @@
     mode: "0644"
   notify: Restart hall
 
+# ---------- database (only once, from the first app VM) ----------
+- name: Create tables, bucket and seed data
+  ansible.builtin.shell: |
+    /opt/venv/bin/flask --app app init-db
+    /opt/venv/bin/flask --app app seed
+    touch /var/lib/hall/.db_initialized
+  args:
+    chdir: /opt/hall
+    creates: /var/lib/hall/.db_initialized
+  become_user: hall
+  run_once: true
+
+# ---------- start ----------
 - name: Enable and start hall
   ansible.builtin.systemd:
     name: hall
