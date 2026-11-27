@@ -30,7 +30,5 @@ def to_exile(target_id: int, exiled_by: User):
 def is_exiled(user, ip_hash: str) -> bool:
     if user is not None and user.is_exiled:
         return True
-    if current_app.config["EXILE_SWITCH"] and exile_repo.is_ip_blocked(ip_hash):
-        return True
-    return False
+    return bool(current_app.config["EXILE_SWITCH"] and exile_repo.is_ip_blocked(ip_hash))
 

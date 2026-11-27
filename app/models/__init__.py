@@ -12,3 +12,22 @@ from models.spy import Spy
 from models.tournaments import Tournament, TournamentEntry
 from models.user import User
 from models.user_ips import IP
+
+__all__ = [
+    "IP",
+    "Battle",
+    "BattleRound",
+    "Company",
+    "Equipment",
+    "Exile",
+    "House",
+    "HouseRequest",
+    "Item",
+    "Knight",
+    "Notification",
+    "Picture",
+    "Spy",
+    "Tournament",
+    "TournamentEntry",
+    "User",
+]

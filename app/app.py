@@ -22,6 +22,7 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     storage.init_storage(app)
+    import models  # noqa: F401
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(book_bp)
