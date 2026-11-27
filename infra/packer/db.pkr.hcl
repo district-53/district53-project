@@ -1,10 +1,9 @@
 
 source "vagrant" "db" {
-  source_path   = "output/d53-base/d53-base-v1.box"
-  box_name      = "district53/base"
+  source_path   = "district53/base"
   provider      = "virtualbox"
+  skip_add      = true
   communicator  = "ssh"
-  add_force     = true
   insert_key    = false
 
   output_dir = "output/d53-db"
