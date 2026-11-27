@@ -10,6 +10,7 @@
   become: true
   roles:  
    - set_up_db
+   - set_up_seaweedfs
 
 
 - name: Set up apps

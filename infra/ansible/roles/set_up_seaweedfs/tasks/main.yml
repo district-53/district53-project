@@ -1,0 +1,41 @@
+- name: Check that the S3 keys are set
+  assert:
+    that:
+      - s3_access_key is defined and s3_access_key | length > 0
+      - s3_secret_key is defined and s3_secret_key | length > 0
+    fail_msg: "Pass s3_access_key and s3_secret_key to Ansible"
+
+- name: S3 credentials
+  template:
+    src: s3.json.j2
+    dest: /etc/seaweedfs/s3.json
+    owner: root
+    group: seaweedfs
+    mode: "0640"
+  no_log: true
+  notify: Restart seaweedfs
+
+- name: SeaweedFS service
+  template:
+    src: seaweedfs.service.j2
+    dest: /etc/systemd/system/seaweedfs.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart seaweedfs
+
+- name: Enable and start SeaweedFS
+  systemd:
+    name: seaweedfs
+    state: started
+    enabled: true
+    daemon_reload: true
+
+- name: Apply config changes now
+  meta: flush_handlers
+
+- name: Wait for S3
+  wait_for:
+    host: "{{ seaweed_ip }}"
+    port: "{{ s3_port }}"
+    timeout: 60
