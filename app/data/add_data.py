@@ -108,4 +108,19 @@ def seed():
     add_portraits()
 
 
-                
+#LINTER TEST 
+import os  
+import sys, json 
+
+SECRET_KEY = "Xk9mQ2vL7pR4wZ8nT3bF6hJ1" # gitleaks:allow
+
+def lint_test(items=[]):
+    unused = 42  
+    if items == None:  
+        pass
+    try:
+        print(undefined_name)  
+    except:  
+        pass
+    x=1;y=2  
+    return    x+y           
