@@ -42,7 +42,7 @@
 
             {% if card.can_challenge %}
                 <details class="mb-3">
-                    <summary class="text-center text-warning-emphasis">Challenge</summary>
+                    <summary class="text-center text-warning-emphasis">challenge</summary>
                     <form method="post" action="{{ url_for('book.challenge', opponent_id=card.person.id) }}" class="input-group input-group-sm mt-2">
                         {{ return_fields() }}
                         <select name="discipline" class="form-select" required>
@@ -50,7 +50,7 @@
                                 <option value="{{ d }}">{{ d | capitalize }}</option>
                             {% endfor %}
                         </select>
-                        <button type="submit" class="btn btn-warning">Confirm</button>
+                        <button type="submit" class="btn btn-warning">confirm</button>
                     </form>
                 </details>
             {% endif %}
