@@ -5,3 +5,5 @@ credentials
 ssh-credentials
 plain-credentials
 ssh-agent
+ws-cleanup
+job-dsl
