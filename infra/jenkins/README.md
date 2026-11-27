@@ -18,7 +18,7 @@ On Apple Silicon:
 JENKINS_BOX=bento/ubuntu-24.04 vagrant up
 ```
 
-Open http://192.168.56.20:8080 and log in as `admin` with the password from `infra/secrets/jenkins_admin_password`.
+Open http://192.168.56.30:8080 and log in as `admin` with the password from `infra/secrets/jenkins_admin_password`.
 
 ## Change config
 Edit `ansible/jenkins.yml`, `ansible/plugins.txt` or `ansible/templates/jenkins.yaml.j2`, then:
