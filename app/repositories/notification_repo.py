@@ -1,6 +1,7 @@
-from sqlalchemy import select, func, update
 from extensions import db
 from models.notifications import Notification
+from sqlalchemy import func, select, update
+
 
 def create_notification(user_id, kind, text, link):
     notification = Notification(

@@ -1,5 +1,7 @@
 from extensions import db
+
 from models.utils import today
+
 
 class Spy(db.Model):
     __tablename__ = "reveals"

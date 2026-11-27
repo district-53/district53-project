@@ -1,4 +1,5 @@
 from extensions import db
+
 from models.tournaments import DISCIPLINES
 from models.utils import now
 

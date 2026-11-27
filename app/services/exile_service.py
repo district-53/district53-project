@@ -1,9 +1,11 @@
 import hmac
-from flask import current_app
+
 from errors import NotAllowed
 from extensions import db
+from flask import current_app
 from models import User
 from repositories import exile_repo, user_repo
+
 
 def hash_ip(ip: str) -> str:
     key = current_app.config["SECRET_KEY"].encode()

@@ -1,6 +1,7 @@
 from extensions import db
-from sqlalchemy import select
 from models import House
+from sqlalchemy import select
+
 
 def list_houses():
     return db.session.scalars(select(House).order_by(House.name)).all()

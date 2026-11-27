@@ -3,6 +3,7 @@ from extensions import db
 from models.notifications import NOTIFICATION_KINDS
 from repositories import notification_repo
 
+
 def create(user_id, kind, text, link):
     if kind not in NOTIFICATION_KINDS:
         raise ValidationError("Unknown kind")

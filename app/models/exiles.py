@@ -1,5 +1,7 @@
 from extensions import db
+
 from models.utils import now
+
 
 class Exile(db.Model):
     __tablename__ = "exiles"

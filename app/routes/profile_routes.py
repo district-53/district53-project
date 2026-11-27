@@ -1,7 +1,6 @@
+from errors import DomainError
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-
-from errors import DomainError
 from models.knights import STAT_NAMES
 from repositories import user_repo
 from services import book_service, profile_service

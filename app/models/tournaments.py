@@ -1,4 +1,5 @@
 from extensions import db
+
 from models.utils import now
 
 DISCIPLINES = ("joust", "melee", "archery")
