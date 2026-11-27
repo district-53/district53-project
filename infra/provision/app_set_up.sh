@@ -28,7 +28,17 @@ chmod 750 "$ENV_DIR"
 touch "$ENV_FILE"
 chown root:hall "$ENV_FILE"
 chmod 640 "$ENV_FILE"
-envsubst '${DB_USER} ${DB_PASSWORD} ${DB_HOST} ${DB_NAME} ${SECRET_KEY} ${APP_PORT} ${S3_ENDPOINT} ${S3_ACCESS_KEY} ${S3_SECRET_KEY} ${S3_BUCKET}' < "/tmp/app.env.tpl" > "$ENV_FILE"
+envsubst '${DB_USER} 
+          ${DB_PASSWORD} 
+          ${DB_HOST} 
+          ${DB_NAME} 
+          ${SECRET_KEY} 
+          ${APP_PORT} 
+          ${S3_ENDPOINT} 
+          ${S3_ACCESS_KEY} 
+          ${S3_SECRET_KEY} 
+          ${S3_BUCKET}' 
+          < "/tmp/app.env.tpl" > "$ENV_FILE"
 
 # python venv
 apt update
