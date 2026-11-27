@@ -2,7 +2,7 @@ from errors import DomainError
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from repositories import house_repo, user_repo
-from services import book_service, spy_service
+from services import battle_service, book_service, spy_service
 
 book_bp = Blueprint("book", __name__)
 
@@ -27,6 +27,19 @@ def reveal_stats(target_id):
     except DomainError as error:
         flash(error.message)
     return redirect(url_for("book.book", kind="knight", house=request.form.get("house", 0, type=int), spread=request.form.get("spread", 0, type=int)))
+
+
+@book_bp.route("/book/challenge/<int:opponent_id>", methods=["POST"])
+@login_required
+def challenge(opponent_id):
+    discipline = request.form.get("discipline", "")
+    try:
+        battle_service.challenge_knight(current_user, opponent_id, discipline)
+        flash("Challenge sent")
+    except DomainError as error:
+        flash(error.message)
+    return redirect(url_for("book.book", kind="knight", house=request.form.get("house", 0, type=int), spread=request.form.get("spread", 0, type=int)))
+
 
 @book_bp.route("/search")
 @login_required

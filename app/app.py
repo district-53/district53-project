@@ -5,6 +5,7 @@ from extensions import db, login_manager, storage
 from flask import Flask
 from models.knights import STAT_NAMES
 from routes.auth_routes import auth_bp
+from routes.battle_routes import battle_bp
 from routes.book_routes import book_bp
 from routes.exile_routes import exile_bp
 from routes.notification_routes import notifications_bp
@@ -30,6 +31,7 @@ def create_app():
     app.register_blueprint(profile_bp)
     app.register_blueprint(exile_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(battle_bp)
     
     register_error_handlers(app)
     command_reg(app)

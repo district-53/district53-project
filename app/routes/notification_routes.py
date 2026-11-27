@@ -21,10 +21,10 @@ def inbox():
 @login_required
 def mark_read(notification_id: int):
     notification_service.mark_read(notification_id, current_user.id)
-    return redirect(url_for("book.inbox"))
+    return redirect(url_for("notifications.inbox"))
 
 @notifications_bp.route("/inbox/read-all", methods=["POST"])
 @login_required
 def mark_all_read():
     notification_service.mark_all_read(current_user.id)
-    return redirect(url_for("book.inbox"))
+    return redirect(url_for("notifications.inbox"))
