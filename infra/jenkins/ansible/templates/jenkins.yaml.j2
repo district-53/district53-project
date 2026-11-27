@@ -19,3 +19,16 @@ jenkins:
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false
+
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - basicSSHUserPrivateKey:
+              scope: GLOBAL
+              id: "ansible-ssh-key"
+              username: "ansible"
+              description: "Ansible SSH key"
+              privateKeySource:
+                directEntry:
+                  privateKey: "${readFile:/var/lib/jenkins/casc_secrets/ansible_key}"
