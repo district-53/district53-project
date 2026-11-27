@@ -1,5 +1,5 @@
-db_name: "hall"
-db_user: "hall_app"
+db_name: hall
+db_user: hall_app
 db_password: "{{ vault_db_password }}"
 secret_key: "{{ vault_secret_key }}"
 s3_access_key: "{{ vault_s3_access_key }}"

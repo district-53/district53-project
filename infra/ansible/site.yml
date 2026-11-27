@@ -1,15 +1,16 @@
-- name: Set up consul
-  hosts: consul
+- name: Common setup and Consul agent on every VM
+  hosts: all
   become: true
-  roles: 
-   - set_up_consul
-
+  roles:
+    - common
+    - set_up_consul
 
 - name: Set up db
   hosts: db
   become: true
   roles:  
    - set_up_db
+   - set_up_seaweedfs
 
 
 - name: Set up apps

@@ -1,0 +1,25 @@
+- name: Harden sshd
+  ansible.builtin.copy:
+    src: sshd-hardening.conf
+    dest: /etc/ssh/sshd_config.d/00-hardening.conf
+    mode: "0644"
+    validate: sshd -t -f %s
+  notify: Reload ssh
+
+- name: Remove cloud-init sshd
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/50-cloud-init.conf
+    state: absent
+  notify: Reload ssh
+
+- name: Firewall - allow ssh
+  community.general.ufw:
+    rule: allow
+    port: "22"
+    proto: tcp
+
+- name: Firewall - deny incoming by default
+  community.general.ufw:
+    state: enabled
+    policy: deny
+    direction: incoming

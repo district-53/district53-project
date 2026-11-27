@@ -1,0 +1,14 @@
+- name: Consul config
+  template:
+    src: consul.hcl.j2
+    dest: /etc/consul.d/consul.hcl
+    owner: consul
+    group: consul
+    mode: "0640"
+  notify: Restart consul
+
+- name: Start consul
+  service:
+    name: consul
+    state: started
+    enabled: true
