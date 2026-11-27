@@ -1,16 +1,16 @@
-from flask import Flask
-from config import Config
-from werkzeug.middleware.proxy_fix import ProxyFix
-
-from errors import register_error_handlers
 from cli import command_reg
+from config import Config
+from errors import register_error_handlers
 from extensions import db, login_manager, storage
+from flask import Flask
 from models.knights import STAT_NAMES
 from routes.auth_routes import auth_bp
 from routes.book_routes import book_bp
+from routes.exile_routes import exile_bp
 from routes.picture_routes import picture_bp
 from routes.profile_routes import profile_bp
-from routes.exile_routes import exile_bp
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 def create_app():
     app = Flask(__name__)
@@ -21,8 +21,8 @@ def create_app():
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
     storage.init_storage(app)
+    import models  # noqa: F401
 
-    import models
     app.register_blueprint(auth_bp)
     app.register_blueprint(book_bp)
     app.register_blueprint(picture_bp)

@@ -1,12 +1,12 @@
 from pathlib import Path
-from sqlalchemy import select
-from werkzeug.datastructures import FileStorage
 
 from errors import DomainError
 from extensions import db
-from models import House, User
+from models import House
 from repositories import user_repo
 from repositories.picture_repo import save_picture
+from sqlalchemy import select
+from werkzeug.datastructures import FileStorage
 
 HOUSES = [
     ("Stark",     "Winter Is Coming"),

@@ -1,7 +1,7 @@
 from errors import ValidationError
 from extensions import db
 from models import User
-from repositories import picture_repo, user_repo, knight_repo
+from repositories import knight_repo, picture_repo, user_repo
 
 
 def update_profile(user: User, *, username, email, password, stats, photo):

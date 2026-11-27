@@ -1,12 +1,11 @@
-from flask import Blueprint, flash, render_template, redirect, url_for, request, jsonify
-from flask_login import current_user, login_user, login_required, logout_user
-from werkzeug.exceptions import RequestEntityTooLarge
-
 from errors import AlreadyRegistered, DomainError
+from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
+from flask_login import current_user, login_required, login_user, logout_user
 from models.knights import STAT_NAMES
 from models.user import ROLES
 from repositories import house_repo
 from services import auth_service
+from werkzeug.exceptions import RequestEntityTooLarge
 
 auth_bp = Blueprint("auth", __name__)
 

@@ -1,7 +1,8 @@
 from models import User
-from repositories import user_repo, knight_repo, house_repo
+from repositories import house_repo, knight_repo, user_repo
 from services.exile_service import can_exile
 from services.spy_service import can_reveal, can_see_stats
+
 
 def build_page(viewer: User, person: User):
     """One page look"""
@@ -31,8 +32,7 @@ def build_book(viewer: User, kind: str, house: int, spread, focus):
         else:
             spread = 0
 
-    if spread < 0:
-        spread = 0
+    spread = max(spread, 0)
 
     first = spread * 2
     pages = [build_page(viewer, person) for person in user_repo.get_people(ids[first:first + 2])]

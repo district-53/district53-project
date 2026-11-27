@@ -1,7 +1,7 @@
-from sqlalchemy import select
 from extensions import db
 from models import Knight, Spy
 from models.utils import today
+from sqlalchemy import select
 
 
 def has_used_today(knight_id: int) -> bool:

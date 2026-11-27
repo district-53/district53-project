@@ -1,8 +1,7 @@
-from flask import Blueprint, Response, abort, jsonify, redirect, request, url_for
-from flask_login import current_user, login_required
-
 from errors import DomainError
 from extensions import storage
+from flask import Blueprint, Response, abort, jsonify, redirect, request, url_for
+from flask_login import current_user, login_required
 from repositories import picture_repo, user_repo
 from services import profile_service
 

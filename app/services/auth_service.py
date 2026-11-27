@@ -1,9 +1,10 @@
 from errors import AlreadyRegistered, ValidationError
 from extensions import db
-from models import Knight, User, House
+from models import House, Knight, User
 from models.user import ROLES
 from repositories import exile_repo, house_repo, picture_repo, user_repo
 from services.exile_service import hash_ip
+
 
 def reg (*, role, username, email, password, house_id, is_new_house, name, motto, sigil, stats, photo, ip) -> User:
     if role not in ROLES:

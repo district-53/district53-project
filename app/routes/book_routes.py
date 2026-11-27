@@ -1,7 +1,6 @@
+from errors import DomainError
 from flask import Blueprint, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-
-from errors import DomainError
 from repositories import house_repo, user_repo
 from services import book_service, spy_service
 

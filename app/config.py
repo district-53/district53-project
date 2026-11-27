@@ -1,4 +1,5 @@
 import os
+
 from dotenv import load_dotenv
 
 VM_ENV_FILE = os.getenv("HALL_ENV_FILE", "/etc/hall/app.env")

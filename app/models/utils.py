@@ -1,7 +1,8 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 
 def now():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 def today():
     return now().date()

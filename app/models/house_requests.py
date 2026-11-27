@@ -1,4 +1,5 @@
 from extensions import db
+
 from models.utils import now
 
 REQUEST_STATUSES = ("pending", "accepted", "declined")
