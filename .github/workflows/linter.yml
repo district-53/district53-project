@@ -41,6 +41,5 @@ jobs:
           VALIDATE_GROOVY: true
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_PYTHON_RUFF: true
-          VALIDATE_PYTHON_RUFF_FORMAT: false
 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
