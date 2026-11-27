@@ -1,0 +1,60 @@
+- name: Check that the db password is set
+  assert:
+    that: db_password is defined and db_password | length > 0
+    fail_msg: "Pass db_password to Ansible"
+
+- name: PostgreSQL listen and password settings
+  template:
+    src: hall.conf.j2
+    dest: "/etc/postgresql/{{ postgres_version }}/main/conf.d/hall.conf"
+    owner: postgres
+    group: postgres
+    mode: "0644"
+  notify: Restart postgresql
+
+- name: PostgreSQL access rules
+  template:
+    src: pg_hba.conf.j2
+    dest: "/etc/postgresql/{{ postgres_version }}/main/pg_hba.conf"
+    owner: postgres
+    group: postgres
+    mode: "0640"
+  notify: Restart postgresql
+
+- name: Enable and start PostgreSQL
+  service:
+    name: postgresql
+    state: started
+    enabled: true
+
+- name: Apply config changes now
+  meta: flush_handlers
+
+- name: Wait for PostgreSQL
+  wait_for:
+    host: localhost
+    port: 5432
+    timeout: 60
+
+- name: Create DB user
+  community.postgresql.postgresql_user:
+    name: "{{ db_user }}"
+    password: "{{ db_password }}"
+    role_attr_flags: NOSUPERUSER,NOCREATEDB,NOCREATEROLE
+  become_user: postgres
+  no_log: true
+
+- name: Create database
+  community.postgresql.postgresql_db:
+    name: "{{ db_name }}"
+    owner: "{{ db_user }}"
+  become_user: postgres
+
+- name: Close the database for everyone else
+  community.postgresql.postgresql_privs:
+    database: "{{ db_name }}"
+    type: database
+    privs: ALL
+    roles: PUBLIC
+    state: absent
+  become_user: postgres
