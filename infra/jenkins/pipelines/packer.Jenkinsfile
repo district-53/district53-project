@@ -1,7 +1,39 @@
 pipeline {
     agent any
+    parameters {
+        booleanParam(name: 'base', defaultValue: false, description: 'Rebuild the base image')
+        booleanParam(name: 'db', defaultValue: false, description: 'db image')
+        booleanParam(name: 'app', defaultValue: false, description: 'app image: app1, app2')
+        booleanParam(name: 'lb', defaultValue: false, description: 'lb image')
+        booleanParam(name: 'jenkins', defaultValue: false, description: 'jenkins image')
+        choice(name: 'action', choices: ['validate', 'build'], description: 'validate = check templates only, build = build and add boxes')
+    }
 
     stages {
+        stage('Select images') {
+            steps {
+                dir('infra/packer') {
+                    script {
+                        def images = []
+                        if (params.db)      { images.add('db') }
+                        if (params.app)     { images.add('app') }
+                        if (params.lb)      { images.add('lb') }
+                        if (params.jenkins) { images.add('jenkins') }
+
+                        def baseMissing = sh(script: 'vagrant box list | grep -q "^district53/base "', returnStatus: true) != 0
+                        if (params.base || (!images.isEmpty() && baseMissing)) {
+                            images.add(0, 'base')
+                        }
+
+                        if (images.isEmpty()) { error('Select at least one image') }
+
+                        env.IMAGES = images.join(' ')
+                        echo "Selected images: ${env.IMAGES}"
+                    }
+                }
+            }
+        }
+
         stage('Init') {
             steps {
                 dir('infra/packer') {
@@ -13,45 +45,32 @@ pipeline {
         stage('Validate') {
             steps {
                 dir('infra/packer') {
-                    sh('packer validate base.pkr.hcl')
+                    script {
+                        for (img in env.IMAGES.split(' ')) {
+                            sh("packer validate ${img}.pkr.hcl")
+                        }
+                    }
                 }
             }
         }
 
-        stage('Build base') {
+        stage('Build and add') {
+            when { expression { params.action == 'build' } }
             steps {
                 dir('infra/packer') {
-                    sh('packer build -force base.pkr.hcl')
-                }
-            }
-        }
-
-        stage('Add base box') {
-            steps {
-                dir('infra/packer') {
-                    sh('vagrant box add --force --name district53/base output/d53-base/d53-base-v1.box')
-                }
-            }
-        }
-
-        stage('Build boxes') {
-            steps {
-                dir('infra/packer') {
-                    sh('packer build -force lb.pkr.hcl')
-                    sh('packer build -force db.pkr.hcl')
-                    sh('packer build -force jenkins.pkr.hcl')
-                    sh('packer build -force app.pkr.hcl')
-                }
-            }
-        }
-
-        stage('Add boxes') {
-            steps {
-                dir('infra/packer') {
-                    sh('vagrant box add --force --name district53/lb  output/d53-lb/package.box')
-                    sh('vagrant box add --force --name district53/db  output/d53-db/package.box')
-                    sh('vagrant box add --force --name district53/jenkins output/jenkins/package.box')
-                    sh('vagrant box add --force --name district53/app output/d53-app/package.box')
+                    script {
+                        def boxFiles = [
+                            base: 'output/d53-base/d53-base-v1.box',
+                            db: 'output/d53-db/package.box',
+                            app: 'output/d53-app/package.box',
+                            lb: 'output/d53-lb/package.box',
+                            jenkins: 'output/jenkins/package.box',
+                        ]
+                        for (img in env.IMAGES.split(' ')) {
+                            sh("packer build -force ${img}.pkr.hcl")
+                            sh("vagrant box add --force --name district53/${img} ${boxFiles[img]}")
+                        }
+                    }
                 }
             }
         }
