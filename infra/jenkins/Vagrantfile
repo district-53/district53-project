@@ -2,7 +2,7 @@ admin_password_file = File.expand_path("../secrets/jenkins_admin_password", __di
 jenkins_admin_password = File.exist?(admin_password_file) ? File.read(admin_password_file).strip : ""
 Vagrant.configure("2") do |config|
   config.vm.define "jenkins" do |jenkins|
-    jenkins.vm.box = ENV.fetch("JENKINS_BOX", "district53/ubuntu-26.04")
+    jenkins.vm.box = ENV.fetch("JENKINS_BOX", "district53/base")
     jenkins.vm.hostname = "jenkins"
     jenkins.vm.network "private_network", ip: "192.168.56.20"
     jenkins.vm.provider "virtualbox" do |vb|
