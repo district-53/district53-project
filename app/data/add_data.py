@@ -110,7 +110,7 @@ def seed():
 
 #LINTER TEST 
 import os  
-import sys, json 
+import sys, json    
 
 SECRET_KEY = "Xk9mQ2vL7pR4wZ8nT3bF6hJ1" # gitleaks:allow
 

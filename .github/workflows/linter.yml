@@ -43,5 +43,4 @@ jobs:
           VALIDATE_PYTHON_RUFF: true
           VALIDATE_PYTHON_RUFF_FORMAT: true
 
-          DISABLE_ERRORS: true
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
