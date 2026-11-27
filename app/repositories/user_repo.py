@@ -2,7 +2,6 @@ from extensions import db
 from models import Knight, User
 from sqlalchemy import select
 
-
 #write
 
 def create_user(username, email, password, role, house_id=None, photo_id=None, stats=None, knight_type="regular"):

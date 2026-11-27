@@ -1,9 +1,11 @@
 import hmac
-from flask import current_app
+
 from errors import NotAllowed
 from extensions import db
+from flask import current_app
 from models import User
 from repositories import exile_repo, user_repo
+
 
 def hash_ip(ip: str) -> str:
     key = current_app.config["SECRET_KEY"].encode()
@@ -28,7 +30,5 @@ def to_exile(target_id: int, exiled_by: User):
 def is_exiled(user, ip_hash: str) -> bool:
     if user is not None and user.is_exiled:
         return True
-    if current_app.config["EXILE_SWITCH"] and exile_repo.is_ip_blocked(ip_hash):
-        return True
-    return False
+    return bool(current_app.config["EXILE_SWITCH"] and exile_repo.is_ip_blocked(ip_hash))
 

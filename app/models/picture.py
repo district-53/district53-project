@@ -1,5 +1,7 @@
 from extensions import db
+
 from models.utils import now
+
 
 class Picture(db.Model):
     __tablename__ = "pictures"

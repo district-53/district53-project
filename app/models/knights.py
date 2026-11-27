@@ -1,5 +1,5 @@
-from extensions import db
 from errors import ValidationError
+from extensions import db
 
 KNIGHT_TYPES = ("regular", "white")
 STAT_NAMES = ("strength", "dexterity", "constitution")
