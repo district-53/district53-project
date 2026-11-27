@@ -6,6 +6,16 @@ jenkins:
       users:
         - id: "admin"
           password: "{{ jenkins_admin_password }}"
+  nodes:
+    - permanent:
+        name: "host"
+        labelString: "host"
+        remoteFS: "{{ jenkins_agent_dir }}"
+        numExecutors: 1
+        launcher:
+          inbound:
+            webSocket: true
+        retentionStrategy: "always"
   authorizationStrategy:
     loggedInUsersCanDoAnything:
       allowAnonymousRead: false

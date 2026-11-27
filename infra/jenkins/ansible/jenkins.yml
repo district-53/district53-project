@@ -5,6 +5,7 @@
   vars:
     plugin_manager_version: "2.16.0"
     plugin_manager_jar: /opt/jenkins-plugin-manager.jar
+    jenkins_agent_dir: /Users/user/jenkins-agent
 
   tasks:
     - name: Install acl and Java
