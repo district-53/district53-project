@@ -1,15 +1,16 @@
-import os
-from flask import Flask
+from cli import command_reg
 from config import Config
-from werkzeug.middleware.proxy_fix import ProxyFix
-from extensions import db, login_manager
-from storage import init_storage
+from errors import register_error_handlers
+from extensions import db, login_manager, storage
+from flask import Flask
+from models.knights import STAT_NAMES
 from routes.auth_routes import auth_bp
 from routes.book_routes import book_bp
+from routes.exile_routes import exile_bp
 from routes.picture_routes import picture_bp
 from routes.profile_routes import profile_bp
-from routes.exile_routes import exile_bp
-from data.add_data import seed
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 
 def create_app():
     app = Flask(__name__)
@@ -19,29 +20,18 @@ def create_app():
     db.init_app(app)
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"
-    init_storage(app)
+    storage.init_storage(app)
+    import models  # noqa: F401
 
-    import models
     app.register_blueprint(auth_bp)
     app.register_blueprint(book_bp)
     app.register_blueprint(picture_bp)
     app.register_blueprint(profile_bp)
     app.register_blueprint(exile_bp)
-
-
-    @app.cli.command("init-db")
-    def init_db():
-        import models
-        db.create_all()
-        print("Tables created")
-
-    app.cli.command("seed")(seed)
-
+    
+    register_error_handlers(app)
+    command_reg(app)
+    
+    app.jinja_env.globals["STAT_NAMES"] = STAT_NAMES
+    
     return app
-
-
-
-app = create_app()
-
-if __name__ == "__main__":
-    app.run(debug=True)

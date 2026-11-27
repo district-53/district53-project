@@ -1,3 +1,4 @@
+from errors import ValidationError
 from extensions import db
 
 KNIGHT_TYPES = ("regular", "white")
@@ -18,13 +19,17 @@ class Knight(db.Model):
     constitution = db.Column(db.Integer, nullable=False)
     gossip_key = db.Column(db.String(255), unique=True)
     key_date = db.Column(db.Date)
+    company_id = db.Column(db.Integer, db.ForeignKey("companies.id", use_alter=True, name="fk_knights_company_id"))
 
-    def set_stats(self, stats: dict):
+    @staticmethod
+    def validate_stats(stats: dict):
         for name in STAT_NAMES:
             value = stats.get(name)
             if not isinstance(value, int) or isinstance(value, bool) or not (1 <= value <= 100):
-                raise ValueError(f"{name} must be an integer from 1 to 100.")
-
+                raise ValidationError(f"{name} must be an integer from 1 to 100.")
+        
+    def set_stats(self, stats: dict):
+        self.validate_stats(stats)
         self.strength = stats.get("strength")
         self.dexterity = stats.get("dexterity")
         self.constitution = stats.get("constitution")

@@ -7,7 +7,7 @@ Wants=network-online.target
 User=hall
 WorkingDirectory=/opt/hall
 EnvironmentFile=/etc/hall/app.env
-ExecStart=/opt/venv/bin/gunicorn -b 0.0.0.0:8000 --workers 2 --threads 4 --worker-class gthread --access-logfile - app:app
+ExecStart=/opt/venv/bin/gunicorn -b 0.0.0.0:8000 --workers 2 --threads 4 --worker-class gthread --access-logfile - 'app:create_app()'
 Restart=always
 RestartSec=5
 

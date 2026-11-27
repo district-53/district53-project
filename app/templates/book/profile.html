@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "partials/_macros.html" import portrait, stats_block, stat_inputs, logout_button with context %}
+{% set is_me = current_user.id == user.id %}
+{% block title %}{{ user.username }} - Profile{% endblock %}
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card bg-dark border-warning border-2 shadow-lg mx-auto col-12 col-lg-9">
+        <div class="card-header border-warning d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('book.book') }}" class="btn btn-outline-warning btn-sm">← Book</a>
+            <span class="text-warning text-uppercase fw-bold">Profile</span>
+            {{ logout_button('btn-sm') }}
+        </div>
+
+        <div class="card-body p-4">
+            {% include "partials/_flash.html" %}
+
+            <div class="row g-4">
+                <div class="col-12 col-md-4 text-center">
+                    <label class="d-block" {% if is_me %}for="photo-input" role="button" title="Click to change your portrait"{% endif %}>
+                        {{ portrait(user, 'w-75') }}
+                    </label>
+                    {% if is_me %}
+                        <p class="small text-secondary">Click the portrait to change it</p>
+                    {% endif %}
+
+                    <h2 class="h3 text-warning font-title mb-1">{{ user.username }}</h2>
+                    <span class="badge text-bg-warning text-uppercase">{{ user.role }}</span>
+                    {% if card.house %}
+                        <p class="mt-2 mb-0">House {{ card.house.name }}</p>
+                        <p class="fst-italic text-secondary">"{{ card.house.motto }}"</p>
+                    {% endif %}
+
+                    <div class="mt-3">{{ stats_block(card) }}</div>
+                </div>
+
+                {% if is_me %}
+                    <div class="col-12 col-md-8">
+                        <form method="post" enctype="multipart/form-data" action="{{ url_for('profile.update_profile', user_id=user.id) }}" class="d-grid gap-3">
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="username" name="username" value="{{ user.username }}" maxlength="32" autocomplete="username" placeholder="username" required>
+                                <label for="username">Username</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="email" class="form-control" id="email" name="email" value="{{ user.email }}" placeholder="email" required>
+                                <label for="email">Email</label>
+                            </div>
+                            <div class="form-floating">
+                                <input type="password" class="form-control" id="password" name="password" placeholder="new password" autocomplete="new-password">
+                                <label for="password">New password (leave empty to keep)</label>
+                            </div>
+
+                            {% if card.knight %}
+                                {{ stat_inputs(card.knight.get_stats()) }}
+                            {% endif %}
+
+                            <input type="file" id="photo-input" name="photo" accept="image/png, image/jpeg, image/webp" class="d-none" onchange="this.form.submit()">
+                            <button type="submit" class="btn btn-warning btn-lg">Save changes</button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

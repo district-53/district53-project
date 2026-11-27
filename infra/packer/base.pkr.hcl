@@ -1,22 +1,18 @@
-packer {
-  required_plugins {
-    virtualbox = {
-      version = "~> 1"
-      source  = "github.com/hashicorp/virtualbox"
-    }
-    vagrant = {
-      version = "~> 1"
-      source  = "github.com/hashicorp/vagrant"
-    }
-  }
+
+variable "ansible_pubkey_file" {
+  type        = string
+  default     = "keys/ansible.pub"
+  description = "Public SSH key for the ansible user"
 }
 
 
 source "virtualbox-iso" "ubuntu" {
-  vm_name       = "ubuntu-26.04.1"
+  vm_name       = "ubuntu-26.04"
   guest_os_type = "Ubuntu_64"
-  iso_url       = "https://releases.ubuntu.com/26.04.1/ubuntu-26.04.1-live-server-amd64.iso"
-  iso_checksum  = "file:https://releases.ubuntu.com/26.04.1/SHA256SUMS"
+  iso_url       = "https://releases.ubuntu.com/resolute/ubuntu-26.04-live-server-amd64.iso"
+  iso_checksum  = "file:https://releases.ubuntu.com/resolute/SHA256SUMS"
+  hard_drive_interface = "sata"
+  iso_interface        = "sata"
 
   cpus      = 2
   memory    = 4096
@@ -43,23 +39,29 @@ source "virtualbox-iso" "ubuntu" {
 
   shutdown_command = "sudo -S shutdown -P now"
 
-  ssh_username     = "vagrant"
-  ssh_password     = "vagrant"
-  ssh_timeout      = "30m"
+  ssh_username = "vagrant"
+  ssh_password = "vagrant"
+  ssh_timeout  = "30m"
 }
 
 build {
   sources = ["source.virtualbox-iso.ubuntu"]
 
   provisioner "shell" {
-    execute_command = "{{ .Vars }} sudo -E bash '{{ .Path }}'"
+    execute_command  = "sudo env {{ .Vars }} bash '{{ .Path }}'"
+    environment_vars = [
+      "ANSIBLE_PUBKEY=${trimspace(file(var.ansible_pubkey_file))}",
+    ]
     scripts = [
+      "scripts/base.sh",
       "scripts/vagrant.sh",
+      "scripts/add_user_ansible.sh",
+      "scripts/consul_base.sh",
       "scripts/cleanup.sh",
     ]
   }
 
   post-processor "vagrant" {
-    output = "output/ubuntu-26.04.1-{{ .Provider }}.box"
+    output = "output/d53-base/d53-base-v1.box"
   }
 }

@@ -1,6 +1,6 @@
 from extensions import db
 from models import Knight, User
-
+from sqlalchemy import select
 
 #write
 
@@ -15,8 +15,6 @@ def create_user(username, email, password, role, house_id=None, photo_id=None, s
         knight = Knight(user_id=user.id, knight_type=knight_type)
         knight.set_stats(stats)
         db.session.add(knight)
-
-    db.session.commit()
     return user
 
 
@@ -27,22 +25,36 @@ def get_user(user_id):
 
 
 def get_user_by_username(username):
-    return User.query.filter_by(username=username).first()
+    return db.session.scalar(select(User).where(User.username == username))
+
+def username_taken(username: str) -> bool:
+    return get_user_by_username(username) is not None
+
+def email_taken(email: str) -> bool:
+    return db.session.scalar(select(User.id).where(User.email == email)) is not None
 
 
-def list_users(role=None):
-    query = User.query
-    if role is not None:
-        query = query.filter_by(role=role)
-    return query.order_by(User.username).all()
+def list_users(role=None, house_id=None):
+    """For sidebar"""
+    query = select(User.id, User.username).where(User.role == role)
+    if house_id is not None:
+        query = query.where(User.house_id == house_id)
+    return db.session.execute(query.order_by(User.username)).all()
 
 
-#update
+def get_people(user_ids: list[int]):
+    """For book"""
+    if not user_ids:
+        return []
+    users = db.session.scalars(select(User).where(User.id.in_(user_ids))).all()
 
-def update(instance, **fields):
-    for field_name, value in fields.items():
-        setattr(instance, field_name, value)
-    db.session.commit()
+    by_id = {user.id: user for user in users}
+    result = []
+    for user_id in user_ids:
+        if user_id in by_id:
+            result.append(by_id[user_id])
+    return result
+    
 
 def search_people(text, limit=10):
     text = (text or "").strip()
@@ -52,8 +64,10 @@ def search_people(text, limit=10):
     safe = text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
     pattern = f"%{safe}%"
 
-    return (User.query.filter(User.role.in_(("knight", "noble")))
-            .filter(User.username.ilike(pattern, escape="\\"))
-            .order_by(User.username)
-            .limit(limit)
-            .all())
+    query = (
+        select(User)
+        .where(User.role.in_(("knight", "noble")), User.username.ilike(pattern, escape="\\"))
+        .order_by(User.username)
+        .limit(limit)
+    )
+    return db.session.scalars(query).all()
