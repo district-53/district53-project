@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "partials/_macros.html" import logout_button with context %}
+{% block title %}Tournaments - Hall of Tourneys{% endblock %}
+
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card border-warning border-2 shadow-lg mx-auto col-12 col-lg-9 overflow-hidden">
+        <!-- Темна шапка-палітурка -->
+        <div class="card-header bg-dark border-bottom border-warning d-flex justify-content-between align-items-center py-3">
+            <a href="{{ url_for('book.book') }}" class="btn btn-outline-warning btn-sm">← Book</a>
+            <span class="text-warning text-uppercase fw-bold font-title fs-5">Tournaments</span>
+            {{ logout_button('btn-sm') }}
+        </div>
+
+        <!-- Світлий пергаментний аркуш (як сторінки в book.html) -->
+        <div class="card-body bg-warning-subtle text-dark font-manuscript fs-5 p-4" data-bs-theme="light">
+            {% include "partials/_flash.html" %}
+
+            {% if tournaments %}
+                <div class="list-group list-group-flush">
+                    {% for t in tournaments %}
+                        <div class="list-group-item bg-transparent text-dark border-warning d-flex justify-content-between align-items-center px-2 py-3">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge {{ 'text-bg-success' if t.status == 'open' else ('text-bg-warning' if t.status == 'running' else 'text-bg-secondary') }} text-uppercase">
+                                        {{ t.status }}
+                                    </span>
+                                    <span class="badge bg-dark text-warning text-uppercase">
+                                        {{ t.discipline }}
+                                    </span>
+                                    <small class="text-body-secondary">
+                                        {{ t.starts_at.strftime('%d %b %Y, %H:%M') }}
+                                    </small>
+                                </div>
+                                <h5 class="mb-0 fw-bold font-title">{{ t.name }}</h5>
+                            </div>
+
+                            <div class="text-end ms-3">
+                                {% if t.winner_id %}
+                                    <span class="badge bg-dark text-warning">Champion #{{ t.winner_id }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="fst-italic text-body-secondary text-center my-5 mb-5">
+                    No tournaments have been announced yet.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}
