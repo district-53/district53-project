@@ -1,4 +1,4 @@
-def selectedVms() {
+String selectedVms() {
     def vms = []
     if (params.db)     { vms.add('db') }
     if (params.consul) { vms.add('consul') }

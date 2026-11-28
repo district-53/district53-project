@@ -1,4 +1,4 @@
-def selectImage() {
+List selectImage() {
     def images = []
     if (params.db)      { images.add('db') }
     if (params.app)     { images.add('app') }
@@ -50,7 +50,7 @@ pipeline {
                 dir('infra/packer') {
                     script {
                         for (img in selectImage()) {
-                            if(img == 'base') {
+                            if (img == 'base') {
                                 sh('packer validate base.pkr.hcl')
                             } else {
                                 sh("packer validate -syntax-only ${img}.pkr.hcl")
