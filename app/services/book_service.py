@@ -1,5 +1,7 @@
 from models import User
+from models.tournaments import DISCIPLINES
 from repositories import house_repo, knight_repo, user_repo
+from services.battle_service import can_challenge
 from services.exile_service import can_exile
 from services.spy_service import can_reveal, can_see_stats
 
@@ -18,6 +20,7 @@ def build_page(viewer: User, person: User):
         "stats": stats,
         "can_reveal": knight is not None and can_reveal(viewer, knight, stats is not None),
         "can_exile": can_exile(viewer, person),
+        "can_challenge": can_challenge(viewer, person),
     }
 
 def build_book(viewer: User, kind: str, house: int, spread, focus):
@@ -43,6 +46,7 @@ def build_book(viewer: User, kind: str, house: int, spread, focus):
         "right": pages[1] if len(pages) > 1 else None,
         "spread": spread,
         "has_next": first + 2 < len(ids),
+        "disciplines": DISCIPLINES,
     }
 
 def default_book(viewer: User, kind, house) -> tuple[str, int]:
