@@ -5,6 +5,9 @@
   vars:
     plugin_manager_version: "2.16.0"
     plugin_manager_jar: /opt/jenkins-plugin-manager.jar
+    jenkins_agent_dir: /Users/user/jenkins-agent
+    jenkins_repo_url: https://github.com/district-53/district53-project.git
+    jenkins_pipelines_branch: main
 
   tasks:
     - name: Install acl and Java
@@ -85,6 +88,29 @@
       become: true
       become_user: jenkins
       when: plugin_list is changed
+
+    - name: Folder for JCasC secrets
+      ansible.builtin.file:
+        path: /var/lib/jenkins/casc_secrets
+        state: directory
+        owner: jenkins
+        group: jenkins
+        mode: "0700"
+
+    - name: Ansible SSH key for Jenkins
+      ansible.builtin.copy:
+        src: /tmp/ansible_key
+        remote_src: true
+        dest: /var/lib/jenkins/casc_secrets/ansible_key
+        owner: jenkins
+        group: jenkins
+        mode: "0600"
+      no_log: true
+
+    - name: Remove the temporary key
+      ansible.builtin.file:
+        path: /tmp/ansible_key
+        state: absent
 
     - name: Create JCasC config
       ansible.builtin.template:
