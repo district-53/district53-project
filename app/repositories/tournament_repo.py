@@ -1,7 +1,6 @@
-from sqlalchemy import select
-
 from extensions import db
 from models.tournaments import Tournament
+from sqlalchemy import select
 
 
 def get_tournament(tournament_id):
