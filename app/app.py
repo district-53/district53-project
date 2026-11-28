@@ -12,6 +12,7 @@ from routes.inventory_routes import inventory_bp
 from routes.notification_routes import notifications_bp
 from routes.picture_routes import picture_bp
 from routes.profile_routes import profile_bp
+from routes.tournament_routes import tournaments_bp
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 
@@ -34,6 +35,7 @@ def create_app():
     app.register_blueprint(notifications_bp)
     app.register_blueprint(battle_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(tournaments_bp)
     
     register_error_handlers(app)
     command_reg(app)
