@@ -35,6 +35,16 @@ pipeline {
             }
         }
 
+        stage('Ansible public key') {
+            steps {
+                dir('infra/packer') {
+                    withCredentials([sshUserPrivateKey(credentialsId: 'ansible-ssh-key', keyFileVariable: 'SSH_KEY')]) {
+                        sh('mkdir -p keys && ssh-keygen -y -f "$SSH_KEY" > keys/ansible.pub')
+                    }
+                }
+            }
+        }
+
         stage('Validate') {
             steps {
                 dir('infra/packer') {
