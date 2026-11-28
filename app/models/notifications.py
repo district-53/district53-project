@@ -1,4 +1,5 @@
 from extensions import db
+
 from models.utils import now
 
 NOTIFICATION_KINDS = ("house_request", "challenge", "tournament")

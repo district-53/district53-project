@@ -1,4 +1,5 @@
 from extensions import db
+
 from models.items import ITEM_SLOTS
 
 

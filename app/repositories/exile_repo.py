@@ -1,9 +1,9 @@
 from extensions import db
-from sqlalchemy import select
-from models.user import User
 from models.exiles import Exile
+from models.user import User
 from models.user_ips import IP
 from models.utils import now
+from sqlalchemy import select
 
 
 def record_ip(user_id: int, ip_hash: str):

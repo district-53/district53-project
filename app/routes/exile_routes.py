@@ -1,6 +1,5 @@
-from flask import Blueprint, abort, redirect, render_template, request, url_for
+from flask import Blueprint, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
-
 from services import exile_service
 
 exile_bp = Blueprint("exile", __name__)

@@ -1,0 +1,15 @@
+{
+  "extends": "recommended-jenkinsfile",
+  "rules": {
+    "NestedBlockDepth": "off",
+    "LineLength": "off",
+    "DuplicateMapLiteral": "off",
+    "DuplicateStringLiteral": "off",
+    "DuplicateNumberLiteral": "off",
+    "NoDef": "off",
+    "MethodReturnTypeRequired": "off",
+    "MethodParameterTypeRequired": "off",
+    "VariableTypeRequired": "off",
+    "CompileStatic": "off"
+  }
+}

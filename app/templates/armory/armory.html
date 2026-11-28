@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% from "partials/_macros.html" import logout_button with context %}
+{% block title %}Armory - Hall of Tourneys{% endblock %}
+
+{% macro mod(value) %}
+    {% if value > 0 %}<span class="text-success">+{{ value }}</span>
+    {% elif value < 0 %}<span class="text-danger">{{ value }}</span>
+    {% else %}<span class="text-secondary">0</span>{% endif %}
+{% endmacro %}
+
+{% macro item_image(item, size=48) %}
+    {% if item and item.picture_id %}
+        <img src="{{ url_for('pictures.get_picture', picture_id=item.picture_id) }}" alt="{{ item.name }}"
+             width="{{ size }}" height="{{ size }}" class="rounded-2 border border-warning object-fit-cover flex-shrink-0">
+    {% else %}
+        <div class="rounded-2 border border-secondary bg-black flex-shrink-0"
+             style="{{ 'width: %dpx; height: %dpx;' % (size, size) }}"></div>
+    {% endif %}
+{% endmacro %}
+
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card bg-dark border-warning border-2 shadow-lg mx-auto col-12 col-lg-10">
+        <div class="card-header border-warning d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('book.book') }}" class="btn btn-outline-warning btn-sm">← Book</a>
+            <span class="text-warning text-uppercase fw-bold">Armory</span>
+            {{ logout_button('btn-sm') }}
+        </div>
+
+        <div class="card-body p-4">
+            {% include "partials/_flash.html" %}
+
+            <div class="row g-4">
+                <!-- left: what the knight wears + stats -->
+                <div class="col-12 col-md-4">
+                    <h2 class="h5 text-warning font-title">Equipped</h2>
+                    <ul class="list-group list-group-flush mb-4">
+                        {% for slot, item in equipped.items() %}
+                            <li class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center px-0">
+                                <div class="d-flex align-items-center gap-2">
+                                    {{ item_image(item, 40) }}
+                                    <div>
+                                        <small class="text-secondary text-uppercase d-block">{{ slot }}</small>
+                                        {{ item.name if item else "—" }}
+                                    </div>
+                                </div>
+                                {% if item %}
+                                    <form method="post" action="{{ url_for('armory.unequip', slot=slot) }}" class="m-0">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">Remove</button>
+                                    </form>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+
+                    <h2 class="h5 text-warning font-title">Stats</h2>
+                    <table class="table table-dark table-sm mb-0">
+                        <thead><tr><th></th><th>Base</th><th>Total</th></tr></thead>
+                        <tbody>
+                            {% for name in STAT_NAMES %}
+                                <tr>
+                                    <td class="text-capitalize">{{ name }}</td>
+                                    <td>{{ base_stats[name] }}</td>
+                                    <td class="fw-bold text-warning">{{ stats[name] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- right: the catalogue -->
+                <div class="col-12 col-md-8">
+                    <h2 class="h5 text-warning font-title">Catalogue</h2>
+                    {% for slot, items in catalogue.items() %}
+                        <h3 class="h6 text-uppercase text-secondary mt-3">{{ slot }}</h3>
+                        <div class="list-group list-group-flush">
+                            {% for item in items %}
+                                {% set worn = equipped[slot] and equipped[slot].id == item.id %}
+                                <div class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center px-0">
+                                    <div class="d-flex align-items-center gap-3">
+                                        {{ item_image(item) }}
+                                        <div>
+                                            <span class="{{ 'text-warning fw-semibold' if worn }}">{{ item.name }}</span>
+                                            <small class="d-block">
+                                                STR {{ mod(item.str) }} · DEX {{ mod(item.dex) }} · CON {{ mod(item.con) }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% if worn %}
+                                        <span class="badge text-bg-warning">Equipped</span>
+                                    {% else %}
+                                        <form method="post" action="{{ url_for('armory.equip', item_id=item.id) }}" class="m-0">
+                                            <button type="submit" class="btn btn-outline-warning btn-sm">Equip</button>
+                                        </form>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <p class="text-secondary small mb-0">Nothing here yet.</p>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

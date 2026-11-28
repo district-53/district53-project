@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% from "partials/_macros.html" import logout_button with context %}
+{% block title %}Inbox - Hall of Tourneys{% endblock %}
+{% block body %}
+<main class="container my-auto py-5">
+    <div class="card bg-dark border-warning border-2 shadow-lg mx-auto col-12 col-lg-9">
+        <div class="card-header border-warning d-flex justify-content-between align-items-center">
+            <a href="{{ url_for('book.book') }}" class="btn btn-outline-warning btn-sm">← Book</a>
+            <span class="text-warning text-uppercase fw-bold">Inbox</span>
+            <div class="d-flex align-items-center gap-2">
+                {% if unread_notifications > 0 %}
+                    <form method="post" action="{{ url_for('notifications.mark_all_read') }}" class="m-0">
+                        <button type="submit" class="btn btn-outline-warning btn-sm">Read all</button>
+                    </form>
+                {% endif %}
+                {{ logout_button('btn-sm') }}
+            </div>
+        </div>
+
+        <div class="card-body p-4">
+            {% include "partials/_flash.html" %}
+
+            {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for item in notifications %}
+                        <div class="list-group-item bg-dark text-light border-secondary d-flex justify-content-between align-items-center px-0 py-3 {{ 'opacity-50' if item.is_read }}">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge {{ 'text-bg-warning' if not item.is_read else 'text-bg-secondary' }} text-uppercase">
+                                        {{ item.kind.replace('_', ' ') }}
+                                    </span>
+                                    <small class="text-secondary">
+                                        {{ item.created_at.strftime('%d %b %Y, %H:%M') }}
+                                    </small>
+                                </div>
+                                <p class="mb-0 {{ 'fw-semibold' if not item.is_read }}">{{ item.text }}</p>
+                            </div>
+
+                            <div class="d-flex align-items-center gap-2 ms-3">
+                                {% if item.link %}
+                                    <a href="{{ item.link }}" class="btn btn-warning btn-sm">Open</a>
+                                {% endif %}
+
+                                {% if not item.is_read %}
+                                    <form method="post" action="{{ url_for('notifications.mark_read', notification_id=item.id) }}" class="m-0">
+                                        <button type="submit" class="btn btn-outline-warning btn-sm">Read</button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge border border-secondary text-secondary">Read</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p class="text-secondary text-center my-4 mb-0">No ravens have arrived yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</main>
+{% endblock %}
