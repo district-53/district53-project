@@ -32,3 +32,21 @@ credentials:
               privateKeySource:
                 directEntry:
                   privateKey: "${readFile:/var/lib/jenkins/casc_secrets/ansible_key}"
+
+jobs:
+  - script: |
+      ['packer', 'infra', 'config'].each { name ->
+        pipelineJob(name) {
+          definition {
+            cpsScm {
+              scm {
+                git {
+                  remote { url('{{ jenkins_repo_url }}') }
+                  branch('*/{{ jenkins_pipelines_branch }}')
+                }
+              }
+              scriptPath('infra/jenkins/pipelines/' + name + '.Jenkinsfile')
+            }
+          }
+        }
+      }
