@@ -1,6 +1,7 @@
 from extensions import db
-from sqlalchemy import select, delete
-from models import Item, Knight, Equipment
+from models import Equipment, Item
+from sqlalchemy import delete, select
+
 
 def list_items():
     return db.session.scalars(select(Item).order_by(Item.name)).all()

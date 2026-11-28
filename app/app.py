@@ -8,10 +8,10 @@ from routes.auth_routes import auth_bp
 from routes.battle_routes import battle_bp
 from routes.book_routes import book_bp
 from routes.exile_routes import exile_bp
+from routes.inventory_routes import inventory_bp
 from routes.notification_routes import notifications_bp
 from routes.picture_routes import picture_bp
 from routes.profile_routes import profile_bp
-from routes.inventory_routes import inventory_bp
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 

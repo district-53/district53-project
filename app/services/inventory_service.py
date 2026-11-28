@@ -1,4 +1,4 @@
-from errors import NotAllowed, NotFound, ValidationError
+from errors import NotAllowed, NotFound
 from extensions import db
 from models.items import ITEM_SLOTS
 from models.knights import STAT_NAMES
