@@ -8,6 +8,7 @@ from routes.auth_routes import auth_bp
 from routes.battle_routes import battle_bp
 from routes.book_routes import book_bp
 from routes.exile_routes import exile_bp
+from routes.inventory_routes import inventory_bp
 from routes.notification_routes import notifications_bp
 from routes.picture_routes import picture_bp
 from routes.profile_routes import profile_bp
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(exile_bp)
     app.register_blueprint(notifications_bp)
     app.register_blueprint(battle_bp)
+    app.register_blueprint(inventory_bp)
     
     register_error_handlers(app)
     command_reg(app)

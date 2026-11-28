@@ -2,7 +2,7 @@ from pathlib import Path
 
 from errors import DomainError
 from extensions import db
-from models import House
+from models import House, Item
 from repositories import user_repo
 from repositories.picture_repo import save_picture
 from sqlalchemy import select
@@ -38,6 +38,22 @@ NOBLES = [
     ("Olenna Tyrell",    "Tyrell",  "olenna_tyrell.png"),
 ]
 
+ITEMS = [
+    ("Longsword",            "weapon",  5,  -1,  -1),
+    ("Valyrian Steel Sword", "weapon",  7,   7, -10),
+    ("War Hammer",           "weapon", 12,  -6,  -3),
+    ("Longbow",              "weapon", -4,  12,  -5),
+    ("Lance",                "weapon",  9, -10,   4),
+    ("Leather Armor",        "armor",  -3,   4,   2),
+    ("Chain Mail",           "armor",  -1,  -3,   7),
+    ("Plate Armor",          "armor",  -2, -10,  15),
+    ("Wooden Shield",        "shield", -1,  -1,   4),
+    ("Kite Shield",          "shield", -3,  -5,  11),
+    ("Leather Cap",          "helmet", -2,   2,   2),
+    ("Great Helm",           "helmet",  0,  -6,   8),
+]
+
+ITEMS_DIR = Path(__file__).resolve().parent / "items"
 PORTRAITS_DIR = Path(__file__).resolve().parent / "portraits"
 PORTRAITS = {
     **{username: photo for username, _, _, _, photo in KNIGHTS if photo},
@@ -79,6 +95,19 @@ def add_people():
         )
     db.session.commit()
 
+def add_items():
+    existing = {item.name: item for item in db.session.scalars(select(Item))}
+    for name, slot, strength, dexterity, constitution in ITEMS:
+        item = existing.get(name)
+        if item is None:
+            item = Item(name=name)
+            db.session.add(item)
+        item.slot = slot
+        item.str = strength
+        item.dex = dexterity
+        item.con = constitution
+    db.session.commit()
+
 def add_portraits():
     for username, filename in PORTRAITS.items():
         user = user_repo.get_user_by_username(username)
@@ -101,9 +130,32 @@ def add_portraits():
         user.photo_id = picture.id
         db.session.commit()
 
+def add_item_images():
+    for item in db.session.scalars(select(Item)):
+        if item.picture_id:
+            continue
+
+        filename = item.name.lower().replace(" ", "_") + ".png"     # "Kite Shield" -> kite_shield.png
+        path = ITEMS_DIR / filename
+        if not path.is_file():
+            print(f"[seed] image missing for {item.name}: {path}")
+            continue
+
+        with path.open("rb") as stream:
+            upload = FileStorage(stream=stream, filename=filename, content_type="image/png")
+            try:
+                picture = save_picture(upload)
+            except DomainError as error:
+                print(f"[seed] skipped image for {item.name}: {error.message}")
+                continue
+
+        item.picture_id = picture.id
+    db.session.commit()
 
 def seed():
     add_houses()
     add_people()
+    add_items()
     add_portraits()
+    add_item_images()
 

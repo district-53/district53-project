@@ -4,6 +4,7 @@ keys/*
 !keys/*.pub
 infra/packer/keys/
 infra/packer/output
+infra/packer/packer_cache/
 infra/packer/.vagrant
 # Vagrant local state
 infra/.vagrant/
