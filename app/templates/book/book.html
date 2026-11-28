@@ -80,6 +80,9 @@
                     </span>
                 {% endif %}
             </a>
+            {% if current_user.role == 'knight' %}
+                <a href="{{ url_for('armory.armory') }}" class="btn btn-outline-warning" title="Armory">⚔</a>
+            {% endif %}
             <a href="{{ url_for('profile.view_profile', user_id=current_user.id) }}" class="btn btn-outline-warning" title="My profile">👤</a>
             {{ logout_button() }}
         </div>
