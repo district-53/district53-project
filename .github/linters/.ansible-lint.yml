@@ -1,0 +1,6 @@
+---
+profile: basic
+
+skip_list:
+   - yaml[line-length]     
+   - name[casing]          

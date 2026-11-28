@@ -37,7 +37,7 @@ jobs:
           VALIDATE_YAML: true
           VALIDATE_BASH: true
           VALIDATE_ANSIBLE: true
-          ANSIBLE_DIRECTORY: ansible
+          ANSIBLE_DIRECTORY: infra/jenkins/ansible
           VALIDATE_GROOVY: true
           VALIDATE_GITHUB_ACTIONS: true
           VALIDATE_PYTHON_RUFF: true
