@@ -50,11 +50,10 @@ pipeline {
                 dir('infra/packer') {
                     script {
                         for (img in selectImage()) {
-                            if(image == 'base') {
+                            if(img == 'base') {
                                 sh('packer validate base.pkr.hcl')
                             } else {
-                                sh("packer validate -syntax-only ${image}.pkr.hcl")
-                                }
+                                sh("packer validate -syntax-only ${img}.pkr.hcl")
                             }
                         }
                     }
